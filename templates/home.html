@@ -15,7 +15,9 @@
             type="text" 
             placeholder="Room code" 
             name="code" 
-            value="{{code}}">
+            value="{{code}}"
+            style="text-transform: uppercase"
+            oninput="this.value = this.value.toUpperCase()"/>   <!--if user CAPS not on: uppercase all the string-->
         <button type="submit" name="join">Join a Room</button>
     </div>
     <button type="submit" class="create-button" name="create">Create a Room</button>
@@ -25,4 +27,11 @@
     </ul>
     {% endif %}
 </form>
+<!--Login/Register functionalities, TODO: proper design these links and their respective html-->
+<div class="login">
+    <a href="{{url_for('login')}}">Login</a>
+</div>
+<div class="register">
+    <a href="{{url_for('register')}}">Register</a>
+</div>
 {% endblock %}

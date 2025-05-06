@@ -67,3 +67,14 @@ h2{
     font-size: 10px;
     color:darkgrey;
 }
+
+/* Style for login and register */
+.login{
+    font-size: 15px;
+
+}
+
+.register{
+    font-size: 15px;
+
+}

@@ -1,12 +1,16 @@
-# BASIC SETUP FOR ANY FLASK WEBSERVER OR APP
+import sql_setup
 from flask import Flask, render_template, request, session, redirect, url_for
 from flask_socketio import join_room, leave_room, send, SocketIO
+from flask_login import LoginManager
 import random
 from string import ascii_uppercase
 
+
+#flask app definition
 app = Flask(__name__)
 app.config["SECRET_KEY"] = "antone" # TODO: make this more secure
 socketio = SocketIO(app)
+
 
 rooms = {}  #for storing info about different rooms
 
@@ -22,7 +26,7 @@ def generate_unique_code(length):
 
     return code
 
-#---Functions for each site/page---#
+#---Route defs for each site/page---#
 #the @app.something is for defining things about each page
 @app.route("/", methods=["POST", "GET"])    #defines methods applicable in this route
 def home():
@@ -32,6 +36,8 @@ def home():
         code = request.form.get("code")
         join = request.form.get("join", False)
         create = request.form.get("create", False)
+
+    
 
         if not name:
             return render_template("home.html", error="Please enter a name.", code=code, name=name)
@@ -60,6 +66,14 @@ def room():
         return redirect(url_for("home"))
 
     return render_template("room.html", code=room, messages=rooms[room]["messages"])    #last thing returned is for saving messages, this should be implemented with SQL
+
+@app.route("/login")
+def login():
+    return render_template('login.html')
+
+@app.route("/register")
+def register():
+    return render_template('register.html')
 
 #---Functions for interacting with a room---#
 @socketio.on("message")
