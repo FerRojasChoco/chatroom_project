@@ -1,7 +1,15 @@
 import sql_setup
+from dotenv import load_dotenv  #esta mierda no se pq puta hay que importar otv aca si ya esta en sql_setup.py ayuda!
 from flask import Flask, render_template, request, session, redirect, url_for
 from flask_socketio import join_room, leave_room, send, SocketIO
-from flask_login import LoginManager
+from flask_wtf import FlaskForm
+from flask_bcrypt import Bcrypt
+from flask_login import login_user, LoginManager, login_required, logout_user, current_user
+
+from wtforms import StringField, PasswordField, SubmitField
+from wtforms.validators import InputRequired, Length, ValidationError
+
+
 import random
 from string import ascii_uppercase
 
@@ -9,12 +17,13 @@ from string import ascii_uppercase
 #flask app definition
 app = Flask(__name__)
 app.config["SECRET_KEY"] = "antone" # TODO: make this more secure
+
 socketio = SocketIO(app)
-
-
 rooms = {}  #for storing info about different rooms
 
-#---Function for random generating a code---#
+bcrypt = Bcrypt(app)    #bcrypt object defined for encrypting the user's passwords
+
+#~~~ Function for random generating a code ~~~#
 def generate_unique_code(length):
     while True:
         code = ""
@@ -26,7 +35,9 @@ def generate_unique_code(length):
 
     return code
 
-#---Route defs for each site/page---#
+
+
+#~~~ Route defs for each site/page ~~~#
 #the @app.something is for defining things about each page
 @app.route("/", methods=["POST", "GET"])    #defines methods applicable in this route
 def home():
@@ -59,6 +70,8 @@ def home():
 
     return render_template("home.html")
 
+
+
 @app.route("/room") #this is where we get into sockets as well
 def room():
     room = session.get("room")
@@ -67,15 +80,50 @@ def room():
 
     return render_template("room.html", code=room, messages=rooms[room]["messages"])    #last thing returned is for saving messages, this should be implemented with SQL
 
-@app.route("/login")
+
+
+#~~~ Login funcitonality block ~~~#
+@app.route("/login", methods=["POST", "GET"])
 def login():
-    return render_template('login.html')
+    form = LoginForm()
 
-@app.route("/register")
+    return render_template('login.html', form=form)
+
+class LoginForm(FlaskForm):  
+    username = StringField(validators=[InputRequired(), Length(min=4, max=20)], render_kw={"placeholder": "Username"})
+
+    password = PasswordField(validators=[InputRequired(), Length(min=4, max=20)], render_kw={"placeholder": "Password"})
+
+    submit = SubmitField("Login")
+
+
+
+#~~~ Register functionality block ~~~#
+@app.route("/register", methods=["POST", "GET"])
 def register():
-    return render_template('register.html')
+    form = RegisterForm()
 
-#---Functions for interacting with a room---#
+    if form.validate_on_submit():
+        hashed_password = bcrypt.generate_password_hash(form.password.data)
+        sql_setup.register_user(form.username.data, hashed_password)
+
+    return render_template('register.html', form=form)
+
+class RegisterForm(FlaskForm):  
+    username = StringField(validators=[InputRequired(), Length(min=4, max=20)], render_kw={"placeholder": "Username"})
+    
+    password = PasswordField(validators=[InputRequired(), Length(min=4, max=20)], render_kw={"placeholder": "Password"})
+
+    submit = SubmitField("Register")
+
+    def validate_username(self, username):  #checks wheter if the username is taken or not
+        existing_user = sql_setup.find_username(username.data)  
+        if existing_user is not None:
+            raise ValidationError('That username already exists. Please write a different one.')
+
+
+
+#~~~ Functions for interacting with a room ~~~#
 @socketio.on("message")
 def message(data):
     room = session.get("room")
