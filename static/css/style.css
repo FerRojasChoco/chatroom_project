@@ -33,6 +33,7 @@
     flex-direction: column;
     width: 80vw;
     align-items: stretch;
+    color: blue;
 }
 
 .messages{
