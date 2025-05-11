@@ -1,10 +1,10 @@
 import sql_setup
-from dotenv import load_dotenv  #esta mierda no se pq puta hay que importar otv aca si ya esta en sql_setup.py ayuda!
+
 from flask import Flask, render_template, request, session, redirect, url_for
 from flask_socketio import join_room, leave_room, send, SocketIO
 from flask_wtf import FlaskForm
 from flask_bcrypt import Bcrypt
-from flask_login import login_user, LoginManager, login_required, logout_user, current_user
+from flask_login import UserMixin, login_user, LoginManager, login_required, logout_user, current_user
 
 from wtforms import StringField, PasswordField, SubmitField
 from wtforms.validators import InputRequired, Length, ValidationError
@@ -14,14 +14,32 @@ import random
 from string import ascii_uppercase
 
 
-#flask app definition
+#~~~ Flask app and SQLalchemy object defintions ~~~#
 app = Flask(__name__)
+
+
+#~~~ Setting up database connection and app key ~~~#
+app.config['SQLALCHEMY_DATABASE_URI'] = (f'mysql+pymysql://{sql_setup.user}:{sql_setup.pw}@{sql_setup.host}/chatroomdb')
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False  # Disables a warning
 app.config["SECRET_KEY"] = "antone" # TODO: make this more secure
+
+sql_setup.db.init_app(app)
+
 
 socketio = SocketIO(app)
 rooms = {}  #for storing info about different rooms
 
 bcrypt = Bcrypt(app)    #bcrypt object defined for encrypting the user's passwords
+
+#~~~ Login Manager block ~~~#
+login_manager = LoginManager()
+login_manager.init_app(app) 
+login_manager.login_view = "login"
+
+@login_manager.user_loader
+def load_user(user_id):
+    return sql_setup.User.query.get(int(user_id))
+
 
 #~~~ Function for random generating a code ~~~#
 def generate_unique_code(length):
@@ -39,7 +57,7 @@ def generate_unique_code(length):
 
 #~~~ Route defs for each site/page ~~~#
 #the @app.something is for defining things about each page
-@app.route("/", methods=["POST", "GET"])    #defines methods applicable in this route
+@app.route("/", methods=['GET', 'POST'])    #defines methods applicable in this route
 def home():
     session.clear() #resets when entering "home" again
     if request.method == "POST":
@@ -82,10 +100,17 @@ def room():
 
 
 
-#~~~ Login funcitonality block ~~~#
-@app.route("/login", methods=["POST", "GET"])
+#~~~ Login functionality block ~~~#
+@app.route("/login", methods=['GET', 'POST'])
 def login():
-    form = LoginForm()
+    form = LoginForm()        
+
+    if form.validate_on_submit():
+        user = sql_setup.User.query.filter_by(username=form.username.data).first()
+        if user:
+            if bcrypt.check_password_hash(user.password ,form.password.data):   #compares given pw with stored pw (hashed ofc)
+                login_user(user)
+                return redirect(url_for('dashboard'))
 
     return render_template('login.html', form=form)
 
@@ -96,16 +121,27 @@ class LoginForm(FlaskForm):
 
     submit = SubmitField("Login")
 
+#~~~ Logout block ~~~#
+@app.route('/logout', methods=['GET', 'POST'])
+@login_required
+def logout():
+    logout_user()
+    return redirect(url_for('login'))
 
 
 #~~~ Register functionality block ~~~#
-@app.route("/register", methods=["POST", "GET"])
+@app.route("/register", methods=['GET', 'POST'])
 def register():
     form = RegisterForm()
 
     if form.validate_on_submit():
         hashed_password = bcrypt.generate_password_hash(form.password.data)
-        sql_setup.register_user(form.username.data, hashed_password)
+        new_user = sql_setup.User(username=form.username.data, password=hashed_password)
+
+        sql_setup.db.session.add(new_user)
+        sql_setup.db.session.commit()
+
+        return redirect(url_for('login'))
 
     return render_template('register.html', form=form)
 
@@ -117,9 +153,37 @@ class RegisterForm(FlaskForm):
     submit = SubmitField("Register")
 
     def validate_username(self, username):  #checks wheter if the username is taken or not
-        existing_user = sql_setup.find_username(username.data)  
-        if existing_user is not None:
+        existing_user = sql_setup.User.query.filter_by(username=username.data).first() 
+
+        if existing_user:
             raise ValidationError('That username already exists. Please write a different one.')
+
+
+#~~~ Dashboard (logged in) route block ~~~#
+@app.route("/dashboard", methods=['GET', 'POST'])
+@login_required
+def dashboard():
+    if request.method == "POST":
+        code = request.form.get("code")
+        join = request.form.get("join", False)
+        create = request.form.get("create", False)
+
+        if join != False and not code:
+            return render_template("dashboard.html", error="Please enter a room code.")
+        
+        room = code
+
+        if create != False:
+            room = generate_unique_code(4)
+            rooms[room] = {"members": 0, "messages": []}
+        elif code not in rooms:
+            return render_template("dashboard.html", error="Room does not exist", code=code)
+        
+        session["room"] = room
+        session["name"] = current_user.username
+        return redirect(url_for("room"))
+
+    return render_template('dashboard.html', name=current_user.username)
 
 
 
@@ -173,4 +237,6 @@ def disconnect():
 
 
 if __name__ == "__main__":
+    with app.app_context():
+        sql_setup.db.create_all()
     socketio.run(app, debug=True)   #debug true: any change made on the server that doesn't "break" the code will auto refresh, otherwise we need to re-run

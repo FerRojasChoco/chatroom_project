@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+{% block content %} 
+<h1>You are logged in</h1>
+<a href="{{url_for('logout')}}">Press here to logout</a>
+
+<h3>Enter the chat room as {{ name }}</h3>
+<input type="hidden" name="name" value="{{ name }}"/>
+<form method="post" class="button">
+    <div class="join">
+        <input
+            type="text"
+            placeholder="Room code"
+            name="code"
+            value="{{code}}"
+            style="text-transform: uppercase;"
+            oninput="this.value = this.value.toUpperCase()"/>
+        <button type="submit" name="join">Join a Room</button>
+    </div>
+    <button type="submit" class="create-button" name="create">Create Room</button>
+        {% if error %}
+        <ul>
+            <li>{{error}}</li>
+        </ul>
+        {% endif %}
+</form>
+
+
+{% endblock %}
