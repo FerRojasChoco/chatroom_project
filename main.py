@@ -9,7 +9,7 @@ from flask_login import UserMixin, login_user, LoginManager, login_required, log
 from wtforms import StringField, PasswordField, SubmitField
 from wtforms.validators import InputRequired, Length, ValidationError
 
-
+import csv
 import random
 from string import ascii_uppercase
 
@@ -95,6 +95,8 @@ def room():
     room = session.get("room")
     if room is None or session.get("name") is None or room not in rooms:    #this is so the user cant just go directly to a room, he must go first to home and then follow the registration for a room
         return redirect(url_for("home"))
+
+    
 
     return render_template("room.html", code=room, messages=rooms[room]["messages"])    #last thing returned is for saving messages, this should be implemented with SQL
 
@@ -239,4 +241,22 @@ def disconnect():
 if __name__ == "__main__":
     with app.app_context():
         sql_setup.db.create_all()
+
+        sql_setup.Code.query.delete()
+        sql_setup.db.session.commit()
+
+        # You are inside the app context here — safe for DB actions
+        with open('code.csv', newline='') as csvfile:
+            reader = csv.DictReader(csvfile)
+            for row in reader:
+                # Example insert or update logic
+                code_entry = sql_setup.Code(
+                    id=int(row['id']),
+                    full_code=row['full_code'],
+                    error_line_number=int(row['error_line_number']),
+                    correct_line=row['correct_line']
+                )
+                sql_setup.db.session.add(code_entry)
+            sql_setup.db.session.commit()
+
     socketio.run(app, debug=True)   #debug true: any change made on the server that doesn't "break" the code will auto refresh, otherwise we need to re-run
