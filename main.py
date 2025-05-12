@@ -245,11 +245,10 @@ if __name__ == "__main__":
         sql_setup.Code.query.delete()
         sql_setup.db.session.commit()
 
-        # You are inside the app context here — safe for DB actions
+        # inside the app context --> safe for DB actions
         with open('code.csv', newline='') as csvfile:
             reader = csv.DictReader(csvfile)
             for row in reader:
-                # Example insert or update logic
                 code_entry = sql_setup.Code(
                     id=int(row['id']),
                     full_code=row['full_code'],
@@ -258,5 +257,7 @@ if __name__ == "__main__":
                 )
                 sql_setup.db.session.add(code_entry)
             sql_setup.db.session.commit()
+
+    #socketio.run(app, host='0.0.0.0', port=5000, debug=False)   #run with this instead when testing for non local connections
 
     socketio.run(app, debug=True)   #debug true: any change made on the server that doesn't "break" the code will auto refresh, otherwise we need to re-run
