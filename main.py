@@ -78,7 +78,11 @@ def home():
         #handle whether a user is joining or creating a room
         if create != False:
             room = generate_unique_code(4)
-            rooms[room] = {"members": 0, "messages": []}
+            rooms[room] = {
+                "members": 0,
+                "messages": [],
+                "current_code": None     #defined for passing it to message function
+            }
         elif code  not in rooms:
             return render_template("home.html", error="Room does not exist.", code=code, name=name)
         
@@ -95,10 +99,18 @@ def room():
     room = session.get("room")
     if room is None or session.get("name") is None or room not in rooms:    #this is so the user cant just go directly to a room, he must go first to home and then follow the registration for a room
         return redirect(url_for("home"))
+    
+    if rooms[room]["current_code"] is None:
+        random_code = sql_setup.Code.query.order_by(sql_setup.db.func.rand()).first()
+        rooms[room]["current_code"] = random_code
 
     
 
-    return render_template("room.html", code=room, messages=rooms[room]["messages"])    #last thing returned is for saving messages, this should be implemented with SQL
+    return render_template(
+        "room.html", 
+        code=room, 
+        messages=rooms[room]["messages"], 
+        snippet=rooms[room]["current_code"].full_code)    #messages returned is for saving messages, this should be implemented with SQL or noSQL
 
 
 
@@ -177,7 +189,11 @@ def dashboard():
 
         if create != False:
             room = generate_unique_code(4)
-            rooms[room] = {"members": 0, "messages": []}
+            rooms[room] = {
+                "members": 0,
+                "messages": [],
+                "current_code": None  
+            }
         elif code not in rooms:
             return render_template("dashboard.html", error="Room does not exist", code=code)
         
@@ -196,10 +212,29 @@ def message(data):
     if room not in rooms:
         return 
     
+    current_code = rooms[room]["current_code"]
+    user_message = data["data"]
+
     content = {
         "name": session.get("name"),
-        "message": data["data"]
+        "message": user_message
     }
+    
+    #~~~ Handles user submitting corrected line of code ~~~#
+
+    if user_message.strip() == current_code.correct_line.strip():
+        victory_content = {
+            "name": "System",
+            "message": f"Correct! The answer was: {current_code.correct_line}"
+        }
+
+        send(victory_content, to=room)
+        rooms[room]["messages"].append(victory_content)
+
+        
+
+
+
     send(content, to=room)
     rooms[room]["messages"].append(content) #TODO correct the date thing mentioned in room.html
     print(f"{session.get('name')} said: {data['data']}") #logs
@@ -219,7 +254,11 @@ def connect(auth):
     join_room(room)
     send({"name": name, "message": "has entered the room"}, to=room)    #sends to everyone
     rooms[room]["members"] += 1
+
+    socketio.emit("member_count_update", {"count": rooms[room]["members"]}, to=room)  #emits an event for updating on real time the number of users (check room.html)
+
     print(f"{name} joined room {room}") # logs
+
 
 @socketio.on("disconnect")
 def disconnect():
@@ -229,6 +268,8 @@ def disconnect():
 
     if room in rooms:
         rooms[room]["members"] -= 1
+        socketio.emit("member_count_update", {"count": rooms[room]["members"]}, to=room)  #emits an event for updating on real time the number of users (check room.html)
+
         if rooms[room]["members"] <= 0:
             del rooms[room]     #deletes the room if there are no members
 

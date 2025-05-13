@@ -1,32 +1,6 @@
 {% extends 'base.html' %}
 {% block content %} 
-<form method="post" class="buttons">
-    <h3>Enter the chat room<h3>
-    <div>
-        <label>Guest Name:</label>
-        <input 
-            type="text" 
-            placeholder="Type your name" 
-            name="name" 
-            value="{{name}}"/>
-    </div>
-    <div class="join">
-        <input 
-            type="text" 
-            placeholder="Room code" 
-            name="code" 
-            value="{{code}}"
-            style="text-transform: uppercase"
-            oninput="this.value = this.value.toUpperCase()"/>   <!--if user CAPS not on: uppercase all the string-->
-        <button type="submit" name="join">Join a Room</button>
-    </div>
-    <button type="submit" class="create-button" name="create">Create a Room</button>
-    {% if error %}
-    <ul>
-        <li>{{error}}</li>
-    </ul>
-    {% endif %}
-</form>
+
 <!--Login/Register functionalities, TODO: proper design these links and their respective html-->
 <div class="login">
     <a href="{{url_for('login')}}">Login</a>
