@@ -11,6 +11,8 @@ from flask_limiter.util import get_remote_address
 from wtforms import StringField, PasswordField, SubmitField
 from wtforms.validators import InputRequired, Length, ValidationError
 
+from sqlalchemy.exc import SQLAlchemyError
+
 import csv
 import random
 from string import ascii_uppercase
@@ -39,7 +41,7 @@ login_manager.init_app(app)
 login_manager.login_view = "login"
 
 limiter = Limiter(
-    app,
+    app=app,
     key_func=get_remote_address,
     default_limits=["200 per day", "50 per hour"]
 )
@@ -129,13 +131,29 @@ def register():
     form = RegisterForm()
 
     if form.validate_on_submit():
-        hashed_password = bcrypt.generate_password_hash(form.password.data)
-        new_user = sql_setup.User(username=form.username.data, password=hashed_password)
+        try:
+    
+            hashed_password = bcrypt.generate_password_hash(form.password.data)
+            new_user = sql_setup.User(username=form.username.data, password=hashed_password)
 
-        sql_setup.db.session.add(new_user)
-        sql_setup.db.session.commit()
+            sql_setup.db.session.add(new_user)
+            sql_setup.db.session.commit()
 
-        return redirect(url_for('login'))
+            app.logger.info(f"New user registered: {form.username.data}") #log 
+
+            
+            return redirect(url_for('login'))
+        
+        #~~~ Handle database error and unexpected errors ~~~#
+        except SQLAlchemyError as e:
+            sql_setup.db.session.rollback()
+            app.logger.error(f"Database error during registration: {str(e)}")
+            return redirect(url_for('register'))
+        
+        except Exception as e:
+            sql_setup.db.session.rollback()
+            app.logger.critical(f"Unexpected error during registration: {str(e)}")
+            return redirect(url_for('register'))
 
     return render_template('register.html', form=form)
 
