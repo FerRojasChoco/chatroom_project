@@ -5,6 +5,8 @@ from flask_socketio import join_room, leave_room, send, SocketIO
 from flask_wtf import FlaskForm
 from flask_bcrypt import Bcrypt
 from flask_login import UserMixin, login_user, LoginManager, login_required, logout_user, current_user
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
 
 from wtforms import StringField, PasswordField, SubmitField
 from wtforms.validators import InputRequired, Length, ValidationError
@@ -20,8 +22,8 @@ app = Flask(__name__)
 
 #~~~ Setting up database connection and app key ~~~#
 app.config['SQLALCHEMY_DATABASE_URI'] = (f'mysql+pymysql://{sql_setup.user}:{sql_setup.pw}@{sql_setup.host}/chatroomdb')
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False  # Disables a warning
-app.config["SECRET_KEY"] = "antone" # TODO: make this more secure
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False  # Disables warning
+app.config["SECRET_KEY"] = sql_setup.key
 
 sql_setup.db.init_app(app)
 
@@ -31,10 +33,16 @@ rooms = {}  #for storing info about different rooms
 
 bcrypt = Bcrypt(app)    #bcrypt object defined for encrypting the user's passwords
 
-#~~~ Login Manager block ~~~#
+#~~~ Login Manager and Limiter block ~~~#
 login_manager = LoginManager()
 login_manager.init_app(app) 
 login_manager.login_view = "login"
+
+limiter = Limiter(
+    app,
+    key_func=get_remote_address,
+    default_limits=["200 per day", "50 per hour"]
+)
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -60,35 +68,6 @@ def generate_unique_code(length):
 @app.route("/", methods=['GET', 'POST'])    #defines methods applicable in this route
 def home():
     session.clear() #resets when entering "home" again
-    if request.method == "POST":
-        name = request.form.get("name")
-        code = request.form.get("code")
-        join = request.form.get("join", False)
-        create = request.form.get("create", False)
-
-    
-
-        if not name:
-            return render_template("home.html", error="Please enter a name.", code=code, name=name)
-        
-        if join != False and not code:
-            return render_template("home.html", error="Please enter a room code", code=code, name=name)
-        
-        room = code 
-        #handle whether a user is joining or creating a room
-        if create != False:
-            room = generate_unique_code(4)
-            rooms[room] = {
-                "members": 0,
-                "messages": [],
-                "current_code": None     #defined for passing it to message function
-            }
-        elif code  not in rooms:
-            return render_template("home.html", error="Room does not exist.", code=code, name=name)
-        
-        session["room"] = room
-        session["name"] = name
-        return redirect(url_for("room"))
 
     return render_template("home.html")
 
@@ -116,6 +95,7 @@ def room():
 
 #~~~ Login functionality block ~~~#
 @app.route("/login", methods=['GET', 'POST'])
+@limiter.limit("5 per minute")
 def login():
     form = LoginForm()        
 

@@ -13,7 +13,7 @@ load_dotenv()
 host=os.getenv("DB_HOST")
 user=os.getenv("DB_USER")
 pw=os.getenv("DB_PASSWORD")
-
+key=os.getenv("SECRET_KEY")
 
 # Separate function for database creation
 import mysql.connector
