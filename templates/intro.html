@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+{% block content %} 
+<div id="centering_using_grid">
+    <div class="intro_1">
+        <h1>Welcome to Game Title</h1>
+        <h2>The best place to code and win</h2>
+        <h3>Compete with others for code supremacy!!!</h3> 
+
+        <div class="buttons_for_login_and_signup">
+            <button type="button" class="button login" onclick="window.location='{{url_for('login')}}'">
+                Login
+            </button>
+            <button type="button" class="register button" onclick="window.location='{{url_for('register')}}'">
+                Register
+            </button>
+        </div>
+        <button type="button" class="button play_button" onclick="window.location='{{url_for('home')}}'">
+            Play
+        </button>
+    </div>
+</div>
+{% endblock %}

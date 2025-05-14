@@ -1,8 +1,65 @@
-.content{
+body {
+    background: #84c6ff url('/static/images/code2.jpg') center/cover fixed no-repeat;
+    margin: 0;
+    font-family: 'Courier New', Courier, monospace;
+  }
+#centering_using_grid{
+    display: grid;
+    height: 100vh;
+    place-items: center;
+}
+.intro_1{
+    justify-content: center;
+    font-size: larger;
+    background-color: rgb(255, 255, 255);
+    text-align: center;
+    padding: 8rem;       
+    border-radius: .5rem;
+}
+
+.login_register{
+    justify-content: center;
+    font-size: larger;
+    background-color: rgb(255, 255, 255);
+    text-align: center;
+    padding: 5rem;       
+    border-radius: .5rem;
+    margin-top: 0;
+}
+
+.buttons_for_login_and_signup{
     display: flex;
     align-items: center;
     justify-content: center;
+    gap: 5%;
 }
+
+.button{
+    display: inline-block;
+    padding: .75rem 4.7rem;
+    margin-left: auto;
+    margin-right: 0;
+    background-color: #fbb4b4;
+    border: none;
+    font-family: 'Courier New', Courier, monospace;
+    text-decoration: underline;
+    cursor: pointer;
+    font-size: 1.4rem;
+    border-radius: .4rem;
+    transition: transform 0.3s ease,
+    box-shadow 0.3s ease;
+}
+
+.button:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+    background-color: #ff4a4a;
+  }
+
+  a:link{color:inherit}
+a:active{color:inherit}
+a:visited{color:inherit}
+a:hover{color:inherit}
 
 .buttons{
     display: flex;
@@ -70,12 +127,58 @@ h2{
 }
 
 /* Style for login and register */
+
 .login{
-    font-size: 15px;
+    font-size: 1.4rem;
 
 }
 
 .register{
-    font-size: 15px;
+    font-size: 1.4rem;
 
+}
+
+.play_button{
+    margin-top: 2rem;
+    padding: .75rem 8rem;
+}
+
+.columnwise{
+    display: grid;
+    row-gap: 1rem;
+    width: 100%;
+    padding: 0.5rem;
+    justify-items: center;
+   
+     
+}
+
+.columnwise input {
+  font-size: 1.25rem;    
+  padding: 0.75rem;
+  box-sizing: border-box;
+  width: 75%;
+}
+
+.columnwise button,
+.columnwise input[type="submit"] {
+  font-size: 1.25rem;
+  padding: 0.75rem;
+  background-color: #fbb4b4;
+  border: none;
+  border-radius: .5rem;
+  cursor: pointer;
+  transition: transform 0.3s ease,
+    box-shadow 0.3s ease;  
+}
+
+.columnwise input[type="submit"]:link{
+    text-decoration: none;
+}
+
+.columnwise input[type="submit"]:hover{
+    text-decoration: none;
+     transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+    background-color: #ff4a4a;
 }

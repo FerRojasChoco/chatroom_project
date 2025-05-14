@@ -40,6 +40,11 @@ def generate_unique_code(length):
 #~~~ Route defs for each site/page ~~~#
 #the @app.something is for defining things about each page
 @app.route("/", methods=["POST", "GET"])    #defines methods applicable in this route
+@app.route("/")
+def intro():
+   return render_template("intro.html")
+
+@app.route("/home", methods=["GET","POST"])
 def home():
     session.clear() #resets when entering "home" again
     if request.method == "POST":
