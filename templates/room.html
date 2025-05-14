@@ -2,7 +2,8 @@
 {% block content %}
 
 <div class="message-box">
-    <h2>Chat Room: {{code}}</h2>  
+    <h2>Chat Room: {{code}} <span id="member-count">(1 user)</span> </h2>  
+    <pre>{{snippet}}</pre>
     <div class="messages" id="messages"></div>
     <div class="inputs">
         <input 
@@ -29,7 +30,7 @@
                 <strong>${name}</strong>: ${msg}
             </span>
             <span class="muted">
-                ${new Date().toLocaleString()}  <!--TODO: not saving when the message has ben sent, but when it was "received" so if refresh, time will be the same-->
+                ${new Date().toLocaleString()}  <!--TODO: not saving when the message has been sent, but when it was "received" so if refresh, time will be the same-->
             </span>
         </div>
         `;
@@ -46,6 +47,12 @@
         socketio.emit("message", {data: message.value});
         message.value="";
     };
+
+    socketio.on("member_count_update", (data) => {
+        const count = data.count;
+        const text = count === 1 ? "(1 user)" : `(${count} users)`;
+        document.getElementById("member-count").textContent = text;
+    });
 </script>
 
 <!--for loop for dynamically calling all msgs in message "history" in order to show the older messages, this should be done with some SQL-->

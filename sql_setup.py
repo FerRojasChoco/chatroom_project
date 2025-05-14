@@ -1,7 +1,11 @@
 #cosas de sql :p
+from flask_login import UserMixin
 from dotenv import load_dotenv
+from flask_sqlalchemy import SQLAlchemy
 import os
-import mysql.connector
+
+
+db = SQLAlchemy()
 
 #~~~ Load mysql credentials ~~~#
 load_dotenv()   
@@ -9,72 +13,32 @@ load_dotenv()
 host=os.getenv("DB_HOST")
 user=os.getenv("DB_USER")
 pw=os.getenv("DB_PASSWORD")
+key=os.getenv("SECRET_KEY")
 
-db = mysql.connector.connect(   #not using the defined function down below for connecting since this takes less args (database creation purpose)
+# Separate function for database creation
+import mysql.connector
+db_connector = mysql.connector.connect(
     host=host,
     user=user,
     password=pw
 )
-
-cursor = db.cursor()
-
-#~~~ Database creation ~~~#
-cursor.execute("CREATE DATABASE IF NOT EXISTS chatroomdb")  
-cursor.execute("USE chatroomdb")
-
-
-#~~~ Tables creation ~~~#
-cursor.execute("CREATE TABLE IF NOT EXISTS user "
-"(id INT PRIMARY KEY, " \
-"username VARCHAR(255) UNIQUE, " \
-"email VARCHAR(255)," \
-"password VARCHAR(255)," \
-"total_score INT)")
-
-db.commit()
+cursor = db_connector.cursor()
+cursor.execute("CREATE DATABASE IF NOT EXISTS chatroomdb")
 cursor.close()
-db.close()
+db_connector.close()
 
-#~~~ Function for connecting to the chatroom database (avoid writing multiple times) ~~~#
-def db_connect():   
-    db = mysql.connector.connect(
-        host=host,
-        user=user,
-        password=pw,
-        database='chatroomdb'
-    )
-    return db
 
-#~~~ Search a given username (used for checking username existence) ~~~#
-def find_username(username):
-    db = db_connect()
-    cursor = db.cursor()
-    
-    query = "SELECT username FROM user WHERE username = %s"
+#~~~ Tables creation (class definition) ~~~#
+#This is done so we can treat each table as an object and use SQLalchemy functions on them
+class User(db.Model, UserMixin):
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(20), nullable=True, unique=True)
+    password = db.Column(db.String(80), nullable=True)
+    score = db.Column(db.BigInteger, nullable=True)
 
-    cursor.execute(query, (username,))
+class Code(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    full_code = db.Column(db.Text, nullable=False)
+    error_line_number = db.Column(db.Integer, nullable=False)
+    correct_line = db.Column(db.String(255), nullable=False) #fixed size since one line of code won't be that long
 
-    result = cursor.fetchone()
-
-    cursor.close()
-    db.close()
-
-    return result[0] if result else None  
-
-#~~~ Add entry (new user registration) to the user table ~~~#
-def register_user(username, password):
-    db = db_connect()
-    cursor = db.cursor()
-
-    # next id calculation
-    cursor.execute("SELECT MAX(id) FROM user")
-    max_id = cursor.fetchone()[0]
-    new_id = 1 if max_id is None else max_id+1
-
-    #new user insertion
-    query = "INSERT INTO user (id, username, password, total_score) VALUES (%s, %s, %s, %s)"
-    cursor.execute(query, (new_id, username, password, 0))
-
-    db.commit()
-    cursor.close() 
-    db.close()
