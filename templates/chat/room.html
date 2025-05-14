@@ -1,0 +1,123 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<div class="message-box">
+    <h2>Chat Room: {{code}} <span id="member-count">(1 user)</span> </h2>  
+    <pre>{{snippet}}</pre>
+    <div class="messages" id="messages-container"></div>
+    <div class="inputs">
+        <input 
+        type="text" 
+        rows="3" 
+        placeholder="Type your message..." 
+        name="message" 
+        id="message-input"
+        aria-label="Message input"/>
+        <button type="button" name="send" id="send-button" onclick="sendMessage()">
+            Send
+        </button>
+    </div>
+</div>
+
+<script type="text/javascript">
+    const socketio = io();
+
+    const messagesContainer = document.getElementById("messages-container");
+    const messageInput = document.getElementById("message-input");
+    const sendButton = document.getElementById("send-button");
+    const memberCountElement = document.getElementById("member-count");
+    const codeSnippetElement = document.getElementById("code-snippet");
+
+    //~~~ Function to create and append messages ~~~//
+    const createMessageElement = (name, msgText) => {
+        const messageDiv = document.createElement('div');
+        messageDiv.classList.add('message-text');
+
+        const nameStrong = document.createElement('strong');
+        nameStrong.textContent = name;
+
+        const msgSpan = document.createElement('span');
+        msgSpan.textContent = (name === "System " ? "" : ": ") + msgText;    //prepend colon & space if its not a sys msg that may or may not have it
+
+        const timeSpan = document.createElement('span');
+        timeSpan.classList.add('muted-timestamp');
+        timeSpan.textContent = new Date().toLocaleString();
+
+        messageDiv.appendChild(nameStrong);
+        messageDiv.appendChild(msgSpan);
+        //append timestamp on a new line or styled differently ?????
+        const br = document.createElement('br');
+        messageDiv.appendChild(br);
+        messageDiv.appendChild(timeSpan);
+
+        messagesContainer.appendChild(messageDiv);
+        messagesContainer.scrollTop = messagesContainer.scrollHeight; //auto-scroll idrk XD
+    };
+
+    //~~~ Handle incoming messages from server ~~~//
+    socketio.on("message", (data) =>{
+        createMessageElement(data.name, data.message);
+    });
+
+    //~~~ Handle member count updates ~~~//
+    socketio.on("member_count_update", (data) => {
+        const count = data.count;
+        const text = count === 1 ? "(1 user)" : `(${count} users)`;
+        document.getElementById("member-count").textContent = text;
+    });
+
+    
+    //~~~ Handle new code snippet updates (friggin trash ahh function como me costo el cerebro men) ~~~//
+    socketio.on("new_snippet", (data) => {
+        if (codeSnippetElement) {
+            codeSnippetElement.textContent = data.snippet;
+        }
+        if (data.message) {
+            createMessageElement("System", data.message);
+        }
+    });
+
+    //~~~ Function to send a message ~~~//
+    const sendMessageToServer = () => {
+        const messageText = messageInput.value.trim();
+        if (messageText === "") return;
+        socketio.emit("message", { data: messageText });
+        messageInput.value = "";
+        messageInput.focus();  //focus men focus!
+    }
+
+    //~~~ Event listeners block (send button/enter key) ~~~//
+    sendButton.addEventListener("click", sendMessageToServer);
+    messageInput.addEventListener("keypress", function(event) {
+        if (event.key === "Enter") {
+            event.preventDefault();
+            sendMessageToServer();
+        }
+    });
+
+    try {
+        const initialMessages = JSON.parse('{{ messages | tojson | safe }}');
+        if (Array.isArray(initialMessages)) {
+            initialMessages.forEach(msg => {
+                // Assuming msg object has 'name' and 'message' properties
+                if (msg && typeof msg.name !== 'undefined' && typeof msg.message !== 'undefined') {
+                     createMessageElement(msg.name, msg.message);
+                } else {
+                    console.warn("Skipping malformed initial message:", msg);
+                }
+            });
+        }
+    } catch (e) {
+        console.error("Error parsing initial messages:", e);
+        // Fallback or error display if needed
+    }
+</script>
+
+<!--for loop for dynamically calling all msgs in message "history" in order to show the older messages, this should be done with some SQL
+{% for msg in messages %}
+    <script type="text/javascript">
+        createMessage("{{msg.name}}", "{{msg.message}}")
+    </script>
+{% endfor %}
+-->
+{% endblock %}
