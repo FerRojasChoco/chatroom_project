@@ -28,7 +28,7 @@ cursor.execute("CREATE TABLE IF NOT EXISTS user "
 "(id INT PRIMARY KEY, " \
 "username VARCHAR(255) UNIQUE, " \
 "email VARCHAR(255)," \
-"password_hash VARCHAR(255)," \
+"password VARCHAR(255)," \
 "total_score INT)")
 
 db.commit()
@@ -72,7 +72,7 @@ def register_user(username, password):
     new_id = 1 if max_id is None else max_id+1
 
     #new user insertion
-    query = "INSERT INTO user (id, username, password_hash, total_score) VALUES (%s, %s, %s, %s)"
+    query = "INSERT INTO user (id, username, password, total_score) VALUES (%s, %s, %s, %s)"
     cursor.execute(query, (new_id, username, password, 0))
 
     db.commit()
