@@ -69,16 +69,6 @@ a:hover{color:inherit}
     gap: 10px;
 }
 
-.join{
-    display: flex;
-    flex-direction: row;
-    width: 100%;
-}
-
-.create-button{
-    width: 100%;
-}
-
 .message-box{
     border-color: black;
     border-width: 2px;
@@ -171,6 +161,19 @@ h2{
   transition: transform 0.3s ease,
     box-shadow 0.3s ease;  
 }
+
+.columnwise button.wide-horiz,
+.columnwise input[type="submit"].wide-horiz{
+  padding: 0.75rem 4rem;
+}
+
+.columnwise input.big-input {
+  font-size: 3rem;
+  padding: 0rem 0rem;
+  width: 50%;
+  text-align: center;
+}
+
 
 .columnwise input[type="submit"]:link{
     text-decoration: none;
