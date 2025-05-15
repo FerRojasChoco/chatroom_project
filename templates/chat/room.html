@@ -3,7 +3,7 @@
 
 <div class="message-box">
     <h2>Chat Room: {{code}} <span id="member-count">(1 user)</span> </h2>  
-    <pre>{{snippet}}</pre>
+    <pre id="code-snippet">{{snippet}}</pre>
     <div class="messages" id="messages-container"></div>
     <div class="inputs">
         <input 
@@ -69,12 +69,16 @@
     
     //~~~ Handle new code snippet updates (friggin trash ahh function como me costo el cerebro men) ~~~//
     socketio.on("new_snippet", (data) => {
+        const snippetElement = document.getElementById("code-snippet"); //eta wea tu la define al principio mira nama mijo
+        
         if (codeSnippetElement) {
             codeSnippetElement.textContent = data.snippet;
         }
         if (data.message) {
             createMessageElement("System", data.message);
         }
+
+        messageInput.value = "";    // TODO: probar si es que influye o no esto en la logica realmente o si es solo visual
     });
 
     //~~~ Function to send a message ~~~//

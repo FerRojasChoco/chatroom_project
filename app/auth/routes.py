@@ -10,7 +10,7 @@ from .. import bcrypt, limiter
 
 #~~~ Login functionality block ~~~#
 @auth_bp.route("/login", methods=['GET', 'POST'])
-@limiter.limit("30 per minute") 
+@limiter.limit("100 per minute") 
 def login():
     form = LoginForm()
 
@@ -36,7 +36,7 @@ def logout():
 
 #~~~ Register functionality block ~~~#
 @auth_bp.route("/register", methods=['GET', 'POST'])
-@limiter.limit("10 per hour") 
+@limiter.limit("1000 per hour") 
 def register():
     form = RegisterForm()
 

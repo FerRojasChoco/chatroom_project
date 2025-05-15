@@ -26,7 +26,7 @@ def message(data):
     if current_code_obj and user_message.strip() == current_code_obj.correct_line.strip():
         victory_content = {
             "name": "System",
-            "message": f"Correct! {name} found the answer: {current_code_obj.correct_line}"
+            "message": f"Correct! {name} found the answer."
         }
 
         send(victory_content, to=room_id)
@@ -38,7 +38,7 @@ def message(data):
             rooms[room_id]["current_code"] = new_random_code
             emit("new_snippet", {
                 "snippet": new_random_code.full_code,
-                "message": "New snippet loaded."
+                "message": "New snippet loaded"
             }, to=room_id)
         else:
             emit("new_snippet", {
