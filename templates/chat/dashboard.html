@@ -1,10 +1,9 @@
 {% extends 'base.html' %}
 {% block content %} 
-<h1>You are logged in</h1>
-<a href="{{url_for('logout')}}">Press here to logout</a>
+<h1>Welcome, {{ name }}!</h1>
+<a href="{{url_for('auth.logout')}}">Press here to logout</a>
 
 <h3>Enter the chat room as {{ name }}</h3>
-<input type="hidden" name="name" value="{{ name }}"/>
 <form method="post" class="button">
     <div class="join">
         <input
@@ -13,7 +12,8 @@
             name="code"
             value="{{code}}"
             style="text-transform: uppercase;"
-            oninput="this.value = this.value.toUpperCase()"/>
+            oninput="this.value = this.value.toUpperCase()"
+            aria-label="Room Code"/>
         <button type="submit" name="join">Join a Room</button>
     </div>
     <button type="submit" class="create-button" name="create">Create Room</button>
