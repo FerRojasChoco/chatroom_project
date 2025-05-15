@@ -43,7 +43,7 @@ login_manager.login_view = "login"
 limiter = Limiter(
     app=app,
     key_func=get_remote_address,
-    default_limits=["200 per day", "50 per hour"]
+    default_limits=["1000 per day", "500 per hour"]
 )
 
 @login_manager.user_loader
@@ -102,7 +102,7 @@ def room():
 
 #~~~ Login functionality block ~~~#
 @app.route("/login", methods=['GET', 'POST'])
-@limiter.limit("5 per minute")
+@limiter.limit("10 per minute")
 def login():
     form = LoginForm()        
 
