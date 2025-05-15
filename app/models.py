@@ -4,7 +4,7 @@ from flask_login import UserMixin
 db = SQLAlchemy()
 
 #~~~ Tables creation (class definition) ~~~#
-#This is done so we can treat each table as an object and use SQLalchemy functions on them
+# This is done so we can treat each table as an object and use SQLalchemy functions on them
 class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(20), nullable=True, unique=True)
@@ -16,3 +16,11 @@ class Code(db.Model):
     full_code = db.Column(db.Text, nullable=False)
     error_line_number = db.Column(db.Integer, nullable=False)
     correct_line = db.Column(db.String(255), nullable=False) #fixed size since one line of code won't be that long
+
+# Add by Nico. This is the all time leaderboard 
+class GlobalLeaderboard(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    score_earned = db.Column(db.Integer, nullable=False)
+    user = db.relationship('User', backref='game_results')
+
