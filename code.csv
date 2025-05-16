@@ -35,7 +35,7 @@ int main() {
 9,"int main() {
     int nums[3] = {1, 2, 3;
     return 0;
-}",2,int nums[3] = {1, 2, 3};
+}",2,"int nums[3] = {1, 2, 3};"
 10,"int main() {
     std::cout << 'Single quotes' << std::endl;
     return 0;

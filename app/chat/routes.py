@@ -26,7 +26,8 @@ def dashboard():
             rooms[room_id] = {
                 "members": 0,
                 "messages": [],
-                "current_code": None
+                "current_code": None,
+                "used_snippets": set()
             }
             current_app.logger.info(f"User {current_user.username} created room {room_id}") #log
        

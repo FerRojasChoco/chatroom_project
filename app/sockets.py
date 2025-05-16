@@ -3,6 +3,7 @@ from flask_socketio import join_room, leave_room, send, emit
 from . import socketio 
 from .utils import rooms 
 from .models import db, Code 
+import random
 
 #~~~ Function for handling messages ~~~#
 @socketio.on("message")
@@ -31,20 +32,40 @@ def message(data):
 
         send(victory_content, to=room_id)
         rooms[room_id]["messages"].append(victory_content)
+        rooms[room_id]["used_snippets"].add(current_code_obj.id)    #adds the correct answered snippet to the already used snippets
         
         #~~~  Load a new code snippet ~~~#
-        new_random_code = Code.query.order_by(db.func.rand()).first()
-        if new_random_code:
-            rooms[room_id]["current_code"] = new_random_code
-            emit("new_snippet", {
-                "snippet": new_random_code.full_code,
-                "message": "New snippet loaded"
+        # new_random_code = Code.query.order_by(db.func.rand()).first()
+        used_ids = rooms[room_id]["used_snippets"]
+        all_snippets = Code.query.all()
+        available_snippets = [snippet for snippet in all_snippets if snippet.id not in used_ids]
+        
+        if not available_snippets:
+            emit("message", {
+                "name": "System",
+                "message": "All snippets completed!"
             }, to=room_id)
-        else:
-            emit("new_snippet", {
-                "snippet": "No more snippets available!",
-                "message": f"{name} solved it! But no more snippets."
-            }, to=room_id)
+            return
+
+        new_snippet = random.choice(available_snippets)
+        rooms[room_id]["current_code"] = new_snippet
+
+        emit("new_snippet", {
+            "snippet": new_snippet.full_code,
+            "message": "New snippet loaded"
+        }, to=room_id)
+            
+        # if new_random_code:
+        #     rooms[room_id]["current_code"] = new_random_code
+        #     emit("new_snippet", {
+        #         "snippet": new_random_code.full_code,
+        #         "message": "New snippet loaded"
+        #     }, to=room_id)
+        # else:
+        #     emit("new_snippet", {
+        #         "snippet": "No more snippets available!",
+        #         "message": f"{name} solved it! But no more snippets."
+        #     }, to=room_id)
 
 
     send(content, to=room_id)
