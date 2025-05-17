@@ -2,8 +2,10 @@
 {% block content %}
 
 <div class="message-box">
-    <h2>Chat Room: {{code}} <span id="member-count">(1 user)</span> </h2>  
-    <pre id="code-snippet">{{snippet}}</pre>
+    <h2>Chat Room: {{code}} <span id="member-count">(1 user)</span> </h2>
+    <div class="code-snippet-wrapper">
+        <pre id="code-snippet">{{snippet}}</pre>
+    </div>
     <div class="messages" id="messages-container"></div>
     <div class="inputs">
         <input 

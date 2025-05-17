@@ -83,6 +83,21 @@ a:hover{color:inherit}
     color: blue;
 }
 
+#code-snippet{
+    text-align: left;
+    margin: 0 auto;
+    display: block;
+    white-space: pre-wrap;
+    font-size: 1.35rem;
+    color: black;
+}
+
+.code-snippet-wrapper{
+     display: flex;
+    justify-content: center;
+    width: 100%;
+    overflow-x: auto; /* Add horizontal scroll if needed */
+}
 .messages{
     overflow-y: scroll;
     flex: 1;
