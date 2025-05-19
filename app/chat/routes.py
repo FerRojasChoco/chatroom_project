@@ -27,7 +27,11 @@ def dashboard():
                 "members": 0,
                 "messages": [],
                 "current_code": None,
-                "used_snippets": set()
+                "used_snippets": set(),
+                "game_active": False,
+                "snippets_completed": 0,
+                "ready_users": set(),  
+                "max_snippets": 5      
             }
             current_app.logger.info(f"User {current_user.username} created room {room_id}") #log
        
@@ -40,7 +44,9 @@ def dashboard():
 
     return render_template('dashboard.html', name=current_user.username)
 
-#~~~ Room route block
+
+
+#~~~ Room route block ~~~#
 @chat_bp.route("/room")
 @login_required
 def room():
