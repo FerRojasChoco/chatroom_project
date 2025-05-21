@@ -2,16 +2,22 @@ from flask import session, current_app
 from flask_socketio import join_room, leave_room, send, emit
 from . import socketio 
 from .utils import rooms 
-from .models import db, Code 
+# Added by Nico: Imports global leaderboard
+from .models import db, User, Code, GlobalLeaderboard 
+from .inGameLeaderboardMongo import log_game_result, update_global_leaderboard
+from datetime import datetime
+from flask import session
 
 #~~~ Function for handling messages ~~~#
+from datetime import datetime
+
 @socketio.on("message")
 def message(data):
     room_id = session.get("room")
     name = session.get("name")
 
     if not room_id or room_id not in rooms:
-        current_app.logger.warning(f"Message from {name} for invalid room {room_id}") #log
+        current_app.logger.warning(f"Message from {name} for invalid room {room_id}")  # log
         return
 
     current_code_obj = rooms[room_id]["current_code"]
@@ -21,8 +27,8 @@ def message(data):
         "name": name,
         "message": user_message
     }
-    
-    #~~~ Handles user submitting corrected line of code ~~~#
+
+    # Handles user submitting corrected line of code
     if current_code_obj and user_message.strip() == current_code_obj.correct_line.strip():
         victory_content = {
             "name": "System",
@@ -31,11 +37,35 @@ def message(data):
 
         send(victory_content, to=room_id)
         rooms[room_id]["messages"].append(victory_content)
-        
-        #~~~  Load a new code snippet ~~~#
+
+        user = User.query.filter_by(username=name).first()
+        if not user:
+            current_app.logger.warning(f"Could not find user with username: {name}")
+            return
+
+        user_id = user.id # ensure it's set when joining
+        username = name
+        submitted_line = user_message.strip()
+        code_id = current_code_obj.id
+        score = 100  # scoring logic can be expanded
+        is_correct = True
+        room_name = room_id
+
+        # Calculate duration_seconds since snippet start
+        start_time = rooms[room_id].get("start_time")
+        if start_time:
+            duration_seconds = (datetime.utcnow() - start_time).total_seconds()
+        else:
+            duration_seconds = 0
+
+        log_game_result(user_id, username, code_id, submitted_line, score, is_correct, duration_seconds, room_name)
+
+
+        # Load a new code snippet and reset start_time
         new_random_code = Code.query.order_by(db.func.rand()).first()
         if new_random_code:
             rooms[room_id]["current_code"] = new_random_code
+            rooms[room_id]["start_time"] = datetime.utcnow()  # reset timer for new snippet
             emit("new_snippet", {
                 "snippet": new_random_code.full_code,
                 "message": "New snippet loaded"
@@ -46,10 +76,9 @@ def message(data):
                 "message": f"{name} solved it! But no more snippets."
             }, to=room_id)
 
-
     send(content, to=room_id)
-    rooms[room_id]["messages"].append(content) #TODO correct the message time
-    current_app.logger.info(f"{name} in room {room_id} said: {user_message}") #log
+    rooms[room_id]["messages"].append(content)  # TODO correct the message time
+    current_app.logger.info(f"{name} in room {room_id} said: {user_message}")  # log
 
 
 #~~~ Function for handling user connections to a chatroom ~~~#
@@ -85,9 +114,16 @@ def disconnect():
         rooms[room_id]["members"] -= 1
         emit("member_count_update", {"count": rooms[room_id]["members"]}, to=room_id)
 
+        # Nico changed: This is in order to update the global leaderboard once the room is disconnected
         if rooms[room_id]["members"] <= 0:
-            current_app.logger.info(f"Room {room_id} is empty, deleting.") #log
+            current_app.logger.info(f"Room {room_id} is empty, updating leaderboard and deleting room.") #log
+            success, msg = update_global_leaderboard(room_id)
+            print("LEADERBOARD UPDATED?", success, msg)
+
+            if not success:
+                current_app.logger.warning(f"Failed to update leaderboard: {msg}")
             del rooms[room_id]
+
         
         send({"name": name, "message": "has left the room"}, to=room_id)
         current_app.logger.info(f"{name} left room {room_id}. Members left: {rooms[room_id].get('members', 0) if room_id in rooms else 'N/A (room deleted)'}") #log

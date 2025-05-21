@@ -2,7 +2,8 @@ import os
 import csv
 import mysql.connector 
 from app import create_app, db, socketio
-from app.models import Code 
+# Added by Nico: Also import GlobalLeaderboard along with Code.
+from app.models import Code, GlobalLeaderboard 
 from app.config import Config 
 
 app = create_app()

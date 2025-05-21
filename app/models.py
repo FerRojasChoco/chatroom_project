@@ -19,8 +19,9 @@ class Code(db.Model):
 
 # Add by Nico. This is the all time leaderboard 
 class GlobalLeaderboard(db.Model):
+    __tablename__ = "global_leaderboard"
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    score_earned = db.Column(db.Integer, nullable=False)
-    user = db.relationship('User', backref='game_results')
+    user_id = db.Column(db.String(64), unique=True, nullable=False)
+    username = db.Column(db.String(128), nullable=False)
+    score = db.Column(db.Integer, default=0)
 
