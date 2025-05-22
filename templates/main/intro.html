@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+{% block content %} 
+<div id="centering_using_grid">
+    <div class="intro_1">
+        <h1>Welcome to ΣChat</h1>
+        <h2>The best place to code and win</h2>
+        <h3>Compete with others for code supremacy!!!</h3> 
+
+        <div class="buttons_for_login_and_signup">
+            <button type="button" id="login-btn" class="button login" data-href="{{ url_for('auth.login') }}">
+                Login
+            </button>
+            <button type="button" id="register-btn" class="register button" data-href="{{ url_for('auth.register') }}">
+                Register
+            </button>
+            <script>
+                document.addEventListener("DOMContentLoaded", function(){
+                // for both login and register
+                document.querySelectorAll(".buttons_for_login_and_signup [data-href]")
+                .forEach(btn => {
+                    btn.addEventListener("click", () => {
+                    window.location.href = btn.getAttribute("data-href");
+                        });
+                    });
+                });
+            </script>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+

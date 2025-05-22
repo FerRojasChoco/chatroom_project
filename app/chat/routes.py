@@ -55,7 +55,7 @@ def room():
 
     if room_id is None or name is None or room_id not in rooms:
         current_app.logger.warning(f"Access to /room denied or invalid. Room: {room_id}, Name: {name}, Room exists: {room_id in rooms if room_id else 'N/A'}")
-        return redirect(url_for("main.home")) 
+        return redirect(url_for("main.intro")) 
     
     if rooms[room_id]["current_code"] is None:
         random_code_obj = Code.query.order_by(db.func.rand()).first()

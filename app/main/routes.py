@@ -5,4 +5,4 @@ from . import main_bp
 def home():
     session.clear()
     current_app.logger.info("Session cleared, user at home page.")
-    return render_template("home.html")
+    return render_template("intro.html")

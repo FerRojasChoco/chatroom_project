@@ -1,9 +1,8 @@
 from flask import session, current_app
 from flask_socketio import join_room, leave_room, send, emit
 from . import socketio 
-from .utils import rooms 
-from .models import db, Code 
-import random
+from .utils import rooms, start_game, load_new_snippet, end_game
+from .models import db
 
 #~~~ Function for handling messages ~~~#
 @socketio.on("message")
@@ -33,7 +32,7 @@ def message(data):
 
         victory_content = {
             "name": "System",
-            "message": f"Correct! {name} found the answer. ({rooms[room_id]['snippets_completed']}/{rooms[room_id]['max_snippets']} completed)"
+            "message": f": Correct! {name} found the answer. ({rooms[room_id]['snippets_completed']}/{rooms[room_id]['max_snippets']} completed)"
         }
 
         send(victory_content, to=room_id)
@@ -43,29 +42,6 @@ def message(data):
             end_game(room_id, "Game completed! All snippets solved.")
         else:
             load_new_snippet(room_id)
-
-        # #~~~  Load a new code snippet ~~~#
-        # used_ids = rooms[room_id]["used_snippets"]
-        # all_snippets = Code.query.all()
-        # available_snippets = [snippet for snippet in all_snippets if snippet.id not in used_ids]
-        
-        # if not available_snippets:
-        #     emit("message", {
-        #         "name": "System",
-        #         "message": "All snippets completed!"
-        #     }, to=room_id)
-        #     return
-
-        # new_snippet = random.choice(available_snippets)
-        # rooms[room_id]["current_code"] = new_snippet
-
-        # emit("new_snippet", {
-        #     "snippet": new_snippet.full_code,
-        #     "message": "New snippet loaded"
-        # }, to=room_id)
-            
-
-
 
 
 
@@ -93,6 +69,8 @@ def connect(auth):
 
     send({"name": name, "message": "has entered the room"}, to=room_id)
     current_app.logger.info(f"{name} joined room {room_id}. Members: {rooms[room_id]['members']}") #log
+
+
 
 #~~~ Function for handling user disconnection from a chatroom ~~~#
 @socketio.on("disconnect")
@@ -141,40 +119,3 @@ def handle_ready():
 
     if len(rooms[room_id]["ready_users"]) == rooms[room_id]["members"]:
         start_game(room_id)
-
-def start_game(room_id):
-    rooms[room_id]["game_active"] = True
-    rooms[room_id]["snippets_completed"] = 0
-    rooms[room_id]["used_snippets"] = set()
-    rooms[room_id]["ready_users"] = set()
-
-    load_new_snippet(room_id)
-
-    emit("game_started", {
-        "message": "All players ready! Game started.",
-        "snippets_remaining": rooms[room_id]["max_snippets"]
-    }, to=room_id)
-
-def load_new_snippet(room_id):
-    used_ids = rooms[room_id]["used_snippets"]
-    available_snippets = Code.query.filter(~Code.id.in_(used_ids)).all()
-
-    if available_snippets:
-        new_snippet = random.choice(available_snippets)
-        rooms[room_id]["current_code"] = new_snippet
-        emit("new_snippet", {
-            "snippet": new_snippet.full_code,
-            "message": f"Snippet {rooms[room_id]['snippets_completed'] + 1}/{rooms[room_id]['max_snippets']}"
-        }, to=room_id)
-    else:
-        end_game(room_id, "No more snippets available!")
-
-def end_game(room_id, message):
-    rooms[room_id]["game_active"] = False
-    emit("game_ended", {
-        "message": message,
-        "show_ready": True
-    }, to=room_id)
-
-
-

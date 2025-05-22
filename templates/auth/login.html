@@ -1,13 +1,16 @@
 {% extends 'base.html' %}
 {% block content %} 
-    <h1>Login...</h1>
-    
-    <form method="POST" action="">
-        {{ form.hidden_tag() }}
-        {{ form.username }}
-        {{ form.password }}
-        {{ form.submit }}
-    </form>
+    <div id="centering_using_grid">
+        <div class="login_register">
+            <h1>Login</h1>
+                <form method="POST" action="" class="columnwise">
+                    {{ form.hidden_tag() }}
+                    {{ form.username }}
+                    {{ form.password }}
+                    {{ form.submit }}
+                </form>
 
-    <a href="{{url_for('auth.register')}}">Don't have an account? Sign up!</a>
+                <a href="{{url_for('auth.register')}}" style="font-size: 0.7rem;">Don't have an account? Sign up!</a>
+        </div>
+    </div>
 {% endblock %}

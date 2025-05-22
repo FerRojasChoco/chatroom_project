@@ -1,30 +1,52 @@
 {% extends 'base.html' %}
 {% block content %}
 
-<div class="message-box">
-    <h2>Chat Room: {{code}} <span id="member-count">(1 user)</span></h2>
+
+<div class="room-grid">
+  <aside class="room-sidebar">
+    <h2>Chat Room: {{ code }} <span id="member-count">(1 user)</span></h2>
+    <h3>Players</h3>
+    <ul>
+      {% for p in players %}
+        <li>{{ p.name }} — {{ p.score }}</li>
+      {% endfor %}
+    </ul>
+  </aside>
+
+  <section class="room-snippet">
+    <h2>Snippet</h2>
     
     <div id="ready-section">
         <button id="ready-btn" onclick="toggleReady()">I'm Ready</button>
         <div id="ready-status">0/1 players ready</div>
     </div>
-    
-    <pre id="code-snippet" style="display: none;"></pre>
-    <div id="game-progress" style="display: none;"></div>
+
+    <pre id="code-snippet"></pre>
+    <div id="game-progress" style="display: none;"></div>    
+
+
+  </section>
+
+  <section class="room-chat">
+     <h2>Chat</h2>
     <div class="messages" id="messages-container"></div>
-    
-    <div class="inputs" id="chat-inputs" style="display: none;">
-        <input 
-            type="text" 
-            rows="3" 
-            placeholder="..." 
-            name="message" 
-            id="message-input"
-            aria-label="Message input"/>
-        <button type="button" name="send" id="send-button" onclick="sendMessage()">
-            Send
-        </button>
+    <div class="inputs">
+      <input 
+        type="text" 
+        rows="3" 
+        placeholder="Type your message..." 
+        name="message" 
+        id="message-input"
+        aria-label="Message input"/>
+      <button 
+        type="button" 
+        name="send" 
+        id="send-button" 
+        onclick="sendMessage()">
+        Send
+      </button>
     </div>
+  </section>
 </div>
 
 <script type="text/javascript">
@@ -32,26 +54,30 @@
     const messagesContainer = document.getElementById("messages-container");
     const messageInput = document.getElementById("message-input");
     const sendButton = document.getElementById("send-button");
+    const memberCountElement = document.getElementById("member-count");
+    const codeSnippetElement = document.getElementById("code-snippet");
+
     let isReady = false;
 
-    //~~~ Create message element ~~~//
+    //~~~ Function to create and append message element ~~~//
     const createMessageElement = (name, msgText) => {
         const messageDiv = document.createElement('div');
         messageDiv.classList.add('message-text');
 
         const nameStrong = document.createElement('strong');
-        nameStrong.textContent = name;
+        nameStrong.textContent = name + ":";
 
         const msgSpan = document.createElement('span');
-        msgSpan.textContent = (name === "System" ? "" : ": ") + msgText;
+        //msgSpan.textContent = (name === "System" ? "" : ": ") + msgText;
+        msgSpan.textContent = msgText;
 
         const timeSpan = document.createElement('span');
         timeSpan.classList.add('muted-timestamp');
         timeSpan.textContent = new Date().toLocaleTimeString();
 
+        const br = document.createElement('br');
         messageDiv.appendChild(nameStrong);
         messageDiv.appendChild(msgSpan);
-        const br = document.createElement('br');
         messageDiv.appendChild(br);
         messageDiv.appendChild(timeSpan);
 
@@ -79,7 +105,7 @@
             `${data.ready_count}/${data.total_users} players ready`;
         
         if (data.name) {
-            createMessageElement("System", `${data.name} is ready`);
+            createMessageElement("System", ` ${data.name} is ready`);
         }
     });
 
@@ -96,22 +122,22 @@
     socketio.on("new_snippet", (data) => {
         document.getElementById("code-snippet").textContent = data.snippet;
         document.getElementById("game-progress").textContent = data.message;
-        createMessageElement("System", `New code snippet: ${data.message}`);
+        createMessageElement("System", `: New code snippet: ${data.message}`);
     });
 
     socketio.on("game_ended", (data) => {
         document.getElementById("code-snippet").style.display = "none";
         document.getElementById("game-progress").style.display = "none";
-        document.getElementById("chat-inputs").style.display = "none";
-        
-        if (data.show_ready) {
-            document.getElementById("ready-section").style.display = "block";
-            document.getElementById("ready-btn").textContent = "I'm Ready";
-            document.getElementById("ready-btn").classList.remove("ready-active");
-            isReady = false;
-        }
+
+        document.getElementById("ready-section").style.display = "block";
+
+        const readyBtn = document.getElementById("ready-btn");
+        readyBtn.textContent = "I'm Ready";
+        readyBtn.classList.remove("ready-active");
+        isReady = false;
         
         createMessageElement("System", data.message);
+        document.getElementById("code-snippet").textContent = "";
     });
 
     socketio.on("member_count_update", (data) => {

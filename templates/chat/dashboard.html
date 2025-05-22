@@ -1,28 +1,33 @@
 {% extends 'base.html' %}
 {% block content %} 
-<h1>Welcome, {{ name }}!</h1>
-<a href="{{url_for('auth.logout')}}">Press here to logout</a>
+<div id="centering_using_grid">
+    <div class="intro_1">
+        <h2>You are logged in, {{name}}</h1>
+        <input type="hidden" name="name" value="{{ name }}"/>
+        <h3>Enter the chat room:</h3>
+        <form method="post" class="columnwise">
+            <input
+                 type="text"
+                placeholder="Room code"
+                name="code"
+                value="{{code}}"
+                style="text-transform: uppercase;"
+                oninput="this.value = this.value.toUpperCase()"
+                class="big-input"/>
 
-<h3>Enter the chat room as {{ name }}</h3>
-<form method="post" class="button">
-    <div class="join">
-        <input
-            type="text"
-            placeholder="Room code"
-            name="code"
-            value="{{code}}"
-            style="text-transform: uppercase;"
-            oninput="this.value = this.value.toUpperCase()"
-            aria-label="Room Code"/>
-        <button type="submit" name="join">Join a Room</button>
+            <div class="buttons_for_login_and_signup">
+                <button type="submit" class="button login wide-horiz" name="join">Join</button>
+                <button type="submit" class="button register wide-horiz" name="create">Create</button>
+                    
+            </div>
+        </form>
+            {% if error %}
+                        <p style="color: red;">{{error}}</p>
+                    {% endif %}
+         <a href="{{url_for('auth.logout')}}">Press here to logout</a>
     </div>
-    <button type="submit" class="create-button" name="create">Create Room</button>
-        {% if error %}
-        <ul>
-            <li>{{error}}</li>
-        </ul>
-        {% endif %}
-</form>
+</div>
+
 
 
 {% endblock %}
