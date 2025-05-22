@@ -5,7 +5,38 @@ id,full_code,error_line_number,correct_line
 }",2,std::cout << ("Hello World!");
 2,"for(int i = 0; i < 10 i++) {
     std::cout << i << std::endl;
-}",1,for(int i = 0; i < 10; i++)
+}",1,for(int i = 0; i < 10; i++) {
 3,"if (1 = (2-1))
     std::cout << 2 << std::endline;
 ",1,if (1 == (2-1))
+4,"int add(int a, int b) {
+    return a + b
+}",2,return a + b;
+5,"#include <iostream>
+using namespace std;
+
+int main() {
+    cout << ""Hello;
+    return 0;
+}",5,cout << "Hello";
+6,"int main() {
+    int x = 5
+    std::cout << x << std::endl;
+}",2,int x = 5;
+7,"void greet() 
+    std::cout << ""Hi"" << std::endl;
+}",1,void greet() {
+8,"int main() {
+    if (true) 
+        std::cout << ""Yes"" << std::endl;
+    else
+        std::cout << ""No"" << std::endl
+}",5,std::cout << "No" << std::endl;
+9,"int main() {
+    int nums[3] = {1, 2, 3;
+    return 0;
+}",2,"int nums[3] = {1, 2, 3};"
+10,"int main() {
+    std::cout << 'Single quotes' << std::endl;
+    return 0;
+}",2,std::cout << "Single quotes" << std::endl;

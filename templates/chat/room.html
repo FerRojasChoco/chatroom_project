@@ -10,6 +10,10 @@
         <li>{{ p.name }} — {{ p.score }}</li>
       {% endfor %}
     </ul>
+     <div id="ready-section">
+        <button id="ready-btn" onclick="toggleReady()">I'm Ready</button>
+        <div id="ready-status">0/1 players ready</div>
+    </div>
   </aside>
 
   <section class="room-snippet">
@@ -43,14 +47,12 @@
 
 <script type="text/javascript">
     const socketio = io();
-
     const messagesContainer = document.getElementById("messages-container");
     const messageInput = document.getElementById("message-input");
     const sendButton = document.getElementById("send-button");
-    const memberCountElement = document.getElementById("member-count");
-    const codeSnippetElement = document.getElementById("code-snippet");
+    let isReady = false;
 
-    //~~~ Function to create and append messages ~~~//
+    //~~~ Create message element ~~~//
     const createMessageElement = (name, msgText) => {
         const messageDiv = document.createElement('div');
         messageDiv.classList.add('message-text');
@@ -64,7 +66,7 @@
 
         const timeSpan = document.createElement('span');
         timeSpan.classList.add('muted-timestamp');
-        timeSpan.textContent = new Date().toLocaleString();
+        timeSpan.textContent = new Date().toLocaleTimeString();
 
         const br = document.createElement('br');
         messageDiv.appendChild(br);
@@ -75,77 +77,109 @@
         messageDiv.appendChild(timeSpan);
 
         messagesContainer.appendChild(messageDiv);
-        messagesContainer.scrollTop = messagesContainer.scrollHeight; //auto-scroll idrk XD
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
     };
 
-    //~~~ Handle incoming messages from server ~~~//
-    socketio.on("message", (data) =>{
+    //~~~ Ready system ~~~//
+    function toggleReady() {
+        isReady = !isReady;
+        const readyBtn = document.getElementById("ready-btn");
+        if (isReady) {
+            readyBtn.textContent = "Cancel Ready";
+            readyBtn.classList.add("ready-active");
+            socketio.emit("ready");
+        } else {
+            readyBtn.textContent = "I'm Ready";
+            readyBtn.classList.remove("ready-active");
+        }
+    }
+
+    //~~~ Socket handlers ~~~//
+    socketio.on("user_ready", (data) => {
+        document.getElementById("ready-status").textContent = 
+            `${data.ready_count}/${data.total_users} players ready`;
+        
+        if (data.name) {
+            createMessageElement("System", `${data.name} is ready`);
+        }
+    });
+
+    socketio.on("game_started", (data) => {
+        document.getElementById("ready-section").style.display = "none";
+        document.getElementById("code-snippet").style.display = "block";
+        document.getElementById("game-progress").style.display = "block";
+        document.getElementById("game-progress").textContent = 
+            `Game started! ${data.snippets_remaining} snippets remaining`;
+        document.getElementById("chat-inputs").style.display = "flex";
+        createMessageElement("System", data.message);
+    });
+
+    socketio.on("new_snippet", (data) => {
+        document.getElementById("code-snippet").textContent = data.snippet;
+        document.getElementById("game-progress").textContent = data.message;
+        createMessageElement("System", `New code snippet: ${data.message}`);
+    });
+
+    socketio.on("game_ended", (data) => {
+        document.getElementById("code-snippet").style.display = "none";
+        document.getElementById("game-progress").style.display = "none";
+        document.getElementById("chat-inputs").style.display = "none";
+        
+        if (data.show_ready) {
+            document.getElementById("ready-section").style.display = "block";
+            document.getElementById("ready-btn").textContent = "I'm Ready";
+            document.getElementById("ready-btn").classList.remove("ready-active");
+            isReady = false;
+        }
+        
+        createMessageElement("System", data.message);
+    });
+
+    socketio.on("member_count_update", (data) => {
+        const count = data.count;
+        const readyCount = data.ready_count || 0;
+        document.getElementById("member-count").textContent = 
+            count === 1 ? "(1 user)" : `(${count} users)`;
+        document.getElementById("ready-status").textContent = 
+            `${readyCount}/${count} players ready`;
+    });
+
+    socketio.on("message", (data) => {
         createMessageElement(data.name, data.message);
     });
 
-    //~~~ Handle member count updates ~~~//
-    socketio.on("member_count_update", (data) => {
-        const count = data.count;
-        const text = count === 1 ? "(1 user)" : `(${count} users)`;
-        document.getElementById("member-count").textContent = text;
-    });
-
-    
-    //~~~ Handle new code snippet updates (friggin trash ahh function como me costo el cerebro men) ~~~//
-    socketio.on("new_snippet", (data) => {
-        const snippetElement = document.getElementById("code-snippet"); //eta wea tu la define al principio mira nama mijo
-        
-        if (codeSnippetElement) {
-            codeSnippetElement.textContent = data.snippet;
-        }
-        if (data.message) {
-            createMessageElement("System", data.message);
-        }
-
-        messageInput.value = "";    // TODO: probar si es que influye o no esto en la logica realmente o si es solo visual
-    });
-
-    //~~~ Function to send a message ~~~//
-    const sendMessageToServer = () => {
+    //~~~ Message sending ~~~//
+    function sendMessage() {
         const messageText = messageInput.value.trim();
         if (messageText === "") return;
+        
         socketio.emit("message", { data: messageText });
         messageInput.value = "";
-        messageInput.focus();  //focus men focus!
+        messageInput.focus();
     }
 
-    //~~~ Event listeners block (send button/enter key) ~~~//
-    sendButton.addEventListener("click", sendMessageToServer);
+    //~~~ Event listeners ~~~//
+    sendButton.addEventListener("click", sendMessage);
     messageInput.addEventListener("keypress", function(event) {
         if (event.key === "Enter") {
             event.preventDefault();
-            sendMessageToServer();
+            sendMessage();
         }
     });
 
+    //~~~ Load initial messages ~~~//
     try {
         const initialMessages = JSON.parse('{{ messages | tojson | safe }}');
         if (Array.isArray(initialMessages)) {
             initialMessages.forEach(msg => {
-                // Assuming msg object has 'name' and 'message' properties
                 if (msg && typeof msg.name !== 'undefined' && typeof msg.message !== 'undefined') {
-                     createMessageElement(msg.name, msg.message);
-                } else {
-                    console.warn("Skipping malformed initial message:", msg);
+                    createMessageElement(msg.name, msg.message);
                 }
             });
         }
     } catch (e) {
         console.error("Error parsing initial messages:", e);
-        // Fallback or error display if needed
     }
 </script>
 
-<!--for loop for dynamically calling all msgs in message "history" in order to show the older messages, this should be done with some SQL
-{% for msg in messages %}
-    <script type="text/javascript">
-        createMessage("{{msg.name}}", "{{msg.message}}")
-    </script>
-{% endfor %}
--->
 {% endblock %}
