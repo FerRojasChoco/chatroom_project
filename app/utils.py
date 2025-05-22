@@ -29,7 +29,7 @@ def start_game(room_id):
     load_new_snippet(room_id)
 
     emit("game_started", {
-        "message": ": All players ready! Game started.",
+        "message": " All players ready! Game started.",
         "snippets_remaining": rooms[room_id]["max_snippets"]
     }, to=room_id)
 

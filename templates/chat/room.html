@@ -30,7 +30,7 @@
   <section class="room-chat">
      <h2>Chat</h2>
     <div class="messages" id="messages-container"></div>
-    <div class="inputs">
+    <div class="inputs" id="chat-inputs">
       <input 
         type="text" 
         rows="3" 
@@ -63,6 +63,12 @@
     const createMessageElement = (name, msgText) => {
         const messageDiv = document.createElement('div');
         messageDiv.classList.add('message-text');
+
+            // Special styling for system messages
+        if (name === "System") {
+            messageDiv.style.fontStyle = 'italic';
+            messageDiv.style.color = '#39ff14';
+        }
 
         const nameStrong = document.createElement('strong');
         nameStrong.textContent = name + ":";
@@ -122,7 +128,7 @@
     socketio.on("new_snippet", (data) => {
         document.getElementById("code-snippet").textContent = data.snippet;
         document.getElementById("game-progress").textContent = data.message;
-        createMessageElement("System", `: New code snippet: ${data.message}`);
+        createMessageElement("System", `New code snippet: ${data.message}`);
     });
 
     socketio.on("game_ended", (data) => {
