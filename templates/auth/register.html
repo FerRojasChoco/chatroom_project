@@ -3,8 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Register</title>
+    <title>Chat</title>
     <link rel="stylesheet" href="{{url_for('static', filename='css/style.css')}}"/>
+    <link rel="icon" type="image/x-icon" href="/static/images/sigma2.png">
 </head>
 
 
@@ -20,7 +21,7 @@
                 {{ form.submit }}
             </form>
     
-            <a href="{{url_for('auth.login')}}">Already have an account? Log in!</a>
+            <a href="{{url_for('auth.login')}}" style="font-size: 0.7rem;">Already have an account? Log in!</a>
         </div>
     </div>
 </body>

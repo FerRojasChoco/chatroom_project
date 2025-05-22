@@ -1,30 +1,34 @@
 body {
-    background: #84c6ff url('/static/images/code2.jpg') center/cover fixed no-repeat;
+    background: #84c6ff url('/static/images/matrix.gif') center/cover fixed no-repeat;
     margin: 0;
     font-family: 'Courier New', Courier, monospace;
+    color: white;
   }
 #centering_using_grid{
     display: grid;
     height: 100vh;
     place-items: center;
+   
 }
 .intro_1{
     justify-content: center;
     font-size: larger;
-    background-color: rgb(255, 255, 255);
+    background-color: #585454;
     text-align: center;
-    padding: 8rem;       
+    padding: 1rem;       
     border-radius: .5rem;
+     border: #201c1c 1vh solid;
 }
 
 .login_register{
     justify-content: center;
     font-size: larger;
-    background-color: rgb(255, 255, 255);
+    background-color: #585454;
     text-align: center;
-    padding: 5rem;       
+    padding: 1rem;       
     border-radius: .5rem;
     margin-top: 0;
+     border: #201c1c 1vh solid;
 }
 
 .buttons_for_login_and_signup{
@@ -39,7 +43,7 @@ body {
     padding: .75rem 4.7rem;
     margin-left: auto;
     margin-right: 0;
-    background-color: #fbb4b4;
+    background-color: #fb5151;
     border: none;
     font-family: 'Courier New', Courier, monospace;
     text-decoration: underline;
@@ -53,7 +57,7 @@ body {
 .button:hover {
     transform: translateY(-5px);
     box-shadow: 0 8px 20px rgba(0,0,0,0.2);
-    background-color: #ff4a4a;
+    background-color: #e90000;
   }
 
   a:link{color:inherit}
@@ -74,7 +78,7 @@ a:hover{color:inherit}
     border-width: 2px;
     border-style: solid;
     border-radius: 10px;
-    background-color: whitesmoke;
+    background-color: #585454;
     height: 80vh;
     display: flex;
     flex-direction: column;
@@ -96,7 +100,7 @@ a:hover{color:inherit}
      display: flex;
     justify-content: center;
     width: 100%;
-    overflow-x: auto; /* Add horizontal scroll if needed */
+    overflow-x: auto;
 }
 .messages{
     overflow-y: scroll;
@@ -130,8 +134,6 @@ h2{
     font-size: 10px;
     color:darkgrey;
 }
-
-/* Style for login and register */
 
 .login{
     font-size: 1.4rem;
@@ -169,7 +171,7 @@ h2{
 .columnwise input[type="submit"] {
   font-size: 1.25rem;
   padding: 0.75rem;
-  background-color: #fbb4b4;
+  background-color: #fb5151;
   border: none;
   border-radius: .5rem;
   cursor: pointer;
@@ -201,5 +203,78 @@ h2{
     text-decoration: none;
      transform: translateY(-2px);
     box-shadow: 0 8px 20px rgba(0,0,0,0.2);
-    background-color: #ff4a4a;
+    background-color: #e90000;
+}
+
+.room-grid {
+  display: grid;
+  height: 100vh; 
+  grid-template-columns: 1fr 2fr 2fr;
+  grid-template-rows: auto 1fr;
+  grid-template-areas:
+    "sidebar   snippet  chat"
+    "sidebar  snippet  chat";
+  gap: 1rem;
+  padding: 1rem;
+  box-sizing: border-box;
+}
+
+.room-header   { grid-area: header; }
+.room-sidebar  { grid-area: sidebar; overflow-y: auto; }
+.room-snippet  { grid-area: snippet; }
+.room-chat     { grid-area: chat; display: flex; flex-direction: column; min-width: 0;}
+
+.room-header,
+.room-sidebar,
+.room-snippet,
+.room-chat {
+  background:#585454;
+  border-radius: 0.5rem;
+  box-shadow: 0 0 8px rgba(0,0,0,0.1);
+  padding: 1rem;
+}
+
+.room-snippet .code-snippet-wrapper {
+  height: 100%;
+}
+#code-snippet {
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  font-family: monospace;
+  margin: 0;
+}
+
+.room-chat .messages {
+  flex: 1;
+  overflow-y: auto;
+  margin-bottom: 0.5rem;
+}
+.room-chat .inputs {
+  flex-shrink: 0;
+  display: flex;
+  gap: 0.5rem;
+}
+.room-chat .inputs input {
+  flex: 1;
+  padding: 0.5rem;
+}
+.room-chat .inputs button {
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+}
+
+.room-sidebar ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.room-sidebar li + li {
+  margin-top: 0.5rem;
+}
+
+.message-text div {
+  white-space: normal;        /* allow wrapping */
+  overflow-wrap: break-word;  /* break really long words/URLs */
+  max-width: 100%;            /* never grow past the chat pane */
 }
