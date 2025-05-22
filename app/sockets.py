@@ -4,7 +4,7 @@ from . import socketio
 from .utils import rooms 
 # Added by Nico: Imports global leaderboard
 from .models import db, User, Code, GlobalLeaderboard 
-from .inGameLeaderboardMongo import log_game_result, update_global_leaderboard
+from .inGameLeaderboardMongo import log_game_result, update_global_leaderboard, generate_leaderboard
 from datetime import datetime
 from flask import session
 
@@ -60,6 +60,9 @@ def message(data):
 
         log_game_result(user_id, username, code_id, submitted_line, score, is_correct, duration_seconds, room_name)
 
+        # Added to update the leaderboard 
+        socketio.emit("update_in_game_leaderboard", generate_leaderboard(room_id), to=room_id)
+
 
         # Load a new code snippet and reset start_time
         new_random_code = Code.query.order_by(db.func.rand()).first()
@@ -102,6 +105,17 @@ def connect(auth):
     emit("member_count_update", {"count": rooms[room_id]["members"]}, to=room_id)
 
     current_app.logger.info(f"{name} joined room {room_id}. Members: {rooms[room_id]['members']}") #log
+
+# Added by Nico: THis is to show the in game leaderboard
+@socketio.on("request_in_game_leaderboard")
+def send_in_game_leaderboard():
+    room_id = session.get("room")
+    if not room_id:
+        return
+    leaderboard = generate_leaderboard(room_id)  # You'll create this function
+    emit("update_in_game_leaderboard", leaderboard, to=room_id)
+
+
 
 #~~~ Function for handling user disconnection from a chatroom ~~~#
 @socketio.on("disconnect")

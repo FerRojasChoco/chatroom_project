@@ -22,6 +22,22 @@ def log_game_result(user_id, username, code_id, submitted_line, score, is_correc
         "game_time": datetime.utcnow()
     })
 
+
+def generate_leaderboard(room_id):
+    pipeline = [
+        #{"$match": {"room_name": room_id}},
+        {"$match": {"room": room_id}},
+        {"$group": {"_id": "$username", "score": {"$sum": "$score"}}},
+        {"$sort": {"score": -1}},
+        {"$limit": 10}
+    ]
+    leaderboard = list(game_logs.aggregate(pipeline))
+    
+    for entry in leaderboard:
+        entry["username"] = entry.pop("_id")
+
+    return leaderboard
+
 def update_global_leaderboard(room_id):
     try:
         mongo_collection = mongo_client["chatroom_game"]["game_logs"]
@@ -53,6 +69,8 @@ def update_global_leaderboard(room_id):
         print(">>> Updating leaderboard for room:", room_id)
         print(">>> Fetched room results:", room_results)
         return True, "Leaderboard updated"
+
+
 
 
     except Exception as e:

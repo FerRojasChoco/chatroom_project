@@ -19,6 +19,8 @@
     </div>
 </div>
 
+
+
 <script type="text/javascript">
     const socketio = io();
 
@@ -81,6 +83,28 @@
         messageInput.value = "";    // TODO: probar si es que influye o no esto en la logica realmente o si es solo visual
     });
 
+
+    // Added by Nico
+    // Handle leaderboard updates
+    socketio.on("update_in_game_leaderboard", (leaderboard) => {
+        const leaderboardList = document.getElementById("leaderboard-list");
+        leaderboardList.innerHTML = "";
+
+        if (!Array.isArray(leaderboard) || leaderboard.length === 0) {
+            const li = document.createElement("li");
+            li.textContent = "No scores available yet.";
+            leaderboardList.appendChild(li);
+            return;
+        }
+
+        leaderboard.forEach((entry, index) => {
+            const li = document.createElement("li");
+            li.textContent = `${index + 1}. ${entry.username}: ${entry.score}`;
+            leaderboardList.appendChild(li);
+        });
+    });
+
+
     //~~~ Function to send a message ~~~//
     const sendMessageToServer = () => {
         const messageText = messageInput.value.trim();
@@ -115,7 +139,19 @@
         console.error("Error parsing initial messages:", e);
         // Fallback or error display if needed
     }
+    
+    // Added by Nico
+    //~~~ Request leaderboard on page load ~~~//
+    socketio.emit("request_in_game_leaderboard");
 </script>
+
+<!-- Added by Nico -->
+<div class="leaderboard-box">
+    <h3>In-Game Leaderboard</h3>
+    <ul id="leaderboard-list"></ul>
+</div>
+
+
 
 <!--for loop for dynamically calling all msgs in message "history" in order to show the older messages, this should be done with some SQL
 {% for msg in messages %}
