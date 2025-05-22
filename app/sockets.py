@@ -7,6 +7,8 @@ from .models import db, User, Code, GlobalLeaderboard
 from .inGameLeaderboardMongo import log_game_result, update_global_leaderboard, generate_leaderboard
 from datetime import datetime
 from flask import session
+import threading
+import time
 
 #~~~ Function for handling messages ~~~#
 from datetime import datetime
@@ -16,9 +18,17 @@ def message(data):
     room_id = session.get("room")
     name = session.get("name")
 
+     # Debug log: print time right now and what we think the start_time is
+    print(f"[MESSAGE EVENT] At {datetime.utcnow().isoformat()} for room {room_id}")
+    print(f"[MESSAGE EVENT] Current start_time for room: {rooms[room_id].get('start_time') if room_id in rooms else None}")
+
     if not room_id or room_id not in rooms:
         current_app.logger.warning(f"Message from {name} for invalid room {room_id}")  # log
         return
+
+    # if rooms[room_id].get("start_time") is None:
+    #     print("[MESSAGE EVENT] start_time not set; ignoring answer!")
+    #     return
 
     current_code_obj = rooms[room_id]["current_code"]
     user_message = data["data"]
@@ -43,21 +53,35 @@ def message(data):
             current_app.logger.warning(f"Could not find user with username: {name}")
             return
 
-        user_id = user.id # ensure it's set when joining
+
+
+        # Calculate duration_seconds since snippet start
+        
+        start_time = rooms[room_id].get("start_time")
+        
+        print(f"[DURATION DEBUG] start_time: {start_time}, now: {datetime.utcnow()}")
+        # if start_time:
+        #     duration_seconds = (datetime.utcnow() - start_time).total_seconds()
+        # else:
+        #     duration_seconds = 0
+        if not start_time:
+            start_time = datetime.utcnow()
+            rooms[room_id]["start_time"] = start_time
+
+        duration_seconds = (datetime.utcnow() - start_time).total_seconds()
+
+        print(f"[DURATION DEBUG] Calculated duration_seconds: {duration_seconds}")
+
+
+        user_id = user.id 
         username = name
         submitted_line = user_message.strip()
         code_id = current_code_obj.id
-        score = 100  # scoring logic can be expanded
+        score = 100  # Later make it more complex
         is_correct = True
         room_name = room_id
 
-        # Calculate duration_seconds since snippet start
-        start_time = rooms[room_id].get("start_time")
-        if start_time:
-            duration_seconds = (datetime.utcnow() - start_time).total_seconds()
-        else:
-            duration_seconds = 0
-
+    
         log_game_result(user_id, username, code_id, submitted_line, score, is_correct, duration_seconds, room_name)
 
         # Added to update the leaderboard 
@@ -68,7 +92,7 @@ def message(data):
         new_random_code = Code.query.order_by(db.func.rand()).first()
         if new_random_code:
             rooms[room_id]["current_code"] = new_random_code
-            rooms[room_id]["start_time"] = datetime.utcnow()  # reset timer for new snippet
+            #rooms[room_id]["start_time"] = datetime.utcnow()  
             emit("new_snippet", {
                 "snippet": new_random_code.full_code,
                 "message": "New snippet loaded"
@@ -83,6 +107,14 @@ def message(data):
     rooms[room_id]["messages"].append(content)  # TODO correct the message time
     current_app.logger.info(f"{name} in room {room_id} said: {user_message}")  # log
 
+@socketio.on("snippet_displayed")
+def snippet_displayed():
+    room_id = session.get("room")
+    print(f"[SERVER] Received snippet_displayed for room {room_id}")
+    if room_id in rooms:
+        rooms[room_id]["start_time"] = datetime.utcnow()
+
+
 
 #~~~ Function for handling user connections to a chatroom ~~~#
 @socketio.on("connect")
@@ -91,28 +123,55 @@ def connect(auth):
     name = session.get("name")
 
     if not room_id or not name:
-        current_app.logger.warning(f"Connection attempt with no room/name in session.") #log
+        current_app.logger.warning(f"Connection attempt with no room/name in session.")
         return 
     
     if room_id not in rooms:
-        current_app.logger.warning(f"Connection attempt to non-existent room: {room_id}") #log
-        return 
+        rooms[room_id] = {
+            "members": 0,
+            "messages": [],
+            "current_code": None,
+            "start_time": datetime.utcnow()  
+        }
+        current_app.logger.info(f"Initialized room {room_id} for the first time.")
 
+        first_code = Code.query.order_by(db.func.rand()).first()
+        if first_code:
+            rooms[room_id]["current_code"] = first_code
+            
+
+            # Delay the emit by 0.5 seconds to give client time to fully join
+            def delayed_emit():
+                time.sleep(0.5)
+                socketio.emit("new_snippet", {
+                "snippet": first_code.full_code,
+                "message": "First snippet loaded"
+            }, to=room_id)
+            threading.Thread(target=delayed_emit).start()
+            
     join_room(room_id)
+    current_code = rooms[room_id].get("current_code")
+    if current_code:
+        emit("new_snippet", {
+            "snippet": current_code.full_code,
+            "message": "New snippet loaded"
+        })  # Sends only to the connecting user
+
     send({"name": name, "message": "has entered the room"}, to=room_id)
 
     rooms[room_id]["members"] += 1
     emit("member_count_update", {"count": rooms[room_id]["members"]}, to=room_id)
+    
 
     current_app.logger.info(f"{name} joined room {room_id}. Members: {rooms[room_id]['members']}") #log
 
-# Added by Nico: THis is to show the in game leaderboard
+# Added by Nico: This is to show the in game leaderboard
 @socketio.on("request_in_game_leaderboard")
 def send_in_game_leaderboard():
     room_id = session.get("room")
     if not room_id:
         return
-    leaderboard = generate_leaderboard(room_id)  # You'll create this function
+    leaderboard = generate_leaderboard(room_id)  
     emit("update_in_game_leaderboard", leaderboard, to=room_id)
 
 
