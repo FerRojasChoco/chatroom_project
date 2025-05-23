@@ -330,8 +330,8 @@ a:hover{color:inherit}
   grid-template-areas:
     "sidebar   snippet  chat"
     "sidebar  snippet  chat";
-  gap: 1rem;
-  padding: 1rem;
+  gap: 1.5rem;
+  padding: 3rem;
   box-sizing: border-box;
 }
 
