@@ -22,11 +22,32 @@
             </div>
         </form>
             {% if error %}
-                        <p style="color: red;">{{error}}</p>
-                    {% endif %}
+                        <p style="color: red;">Error: {{error}}</p>
+            {% endif %}
          <a href="{{url_for('auth.logout')}}">Press here to logout</a>
     </div>
 </div>
+
+<!-- Added to display the leaderboard-->
+<table border="1">
+    <caption style="margin-bottom: 10px; font-weight: bold; font-size: 1.5em;">Global Leaderboard</caption>
+    <thead>
+        <tr>
+            <th>Rank</th>
+            <th>Username</th>
+            <th>Score</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for user in leaderboard %}
+        <tr>
+            <td>{{ loop.index }}</td> 
+            <td>{{ user.username }}</td>
+            <td>{{ user.score }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
 
 
 

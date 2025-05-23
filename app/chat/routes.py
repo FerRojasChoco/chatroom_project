@@ -2,7 +2,7 @@ from flask import render_template, request, session, redirect, url_for, current_
 from flask_login import login_required, current_user
 from . import chat_bp
 from ..utils import generate_unique_code, rooms 
-from ..models import db, Code 
+from ..models import db, Code, GlobalLeaderboard
 
 #~~~ Dashboard (logged in) route block ~~~#
 @chat_bp.route("/dashboard", methods=['GET', 'POST'])
@@ -42,7 +42,9 @@ def dashboard():
         session["name"] = current_user.username
         return redirect(url_for("chat.room"))
 
-    return render_template('dashboard.html', name=current_user.username)
+    leaderboard = db.session.query(GlobalLeaderboard).order_by(GlobalLeaderboard.score.desc()).all()
+
+    return render_template('dashboard.html', name=current_user.username, leaderboard=leaderboard)
 
 
 

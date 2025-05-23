@@ -6,6 +6,12 @@
   <aside class="room-sidebar">
     <h2>Chat Room: {{ code }} <span id="member-count">(1 user)</span></h2>
     <h3>Players</h3>
+
+    <div class="leaderboard-box">
+        <h3>In-Game Leaderboard</h3>
+        <ul id="leaderboard-list"></ul>
+    </div>
+    <!-- CHECK IF CAN DELETE THE SECOND UL MY N WORD -->
     <ul>
       {% for p in players %}
         <li>{{ p.name }} — {{ p.score }}</li>
@@ -64,7 +70,7 @@
         const messageDiv = document.createElement('div');
         messageDiv.classList.add('message-text');
 
-            // Special styling for system messages
+         // Special styling for system messages
         if (name === "System") {
             messageDiv.style.fontStyle = 'italic';
             messageDiv.style.color = '#39ff14';
@@ -74,7 +80,6 @@
         nameStrong.textContent = name + ":";
 
         const msgSpan = document.createElement('span');
-        //msgSpan.textContent = (name === "System" ? "" : ": ") + msgText;
         msgSpan.textContent = msgText;
 
         const timeSpan = document.createElement('span');
@@ -129,6 +134,12 @@
         document.getElementById("code-snippet").textContent = data.snippet;
         document.getElementById("game-progress").textContent = data.message;
         createMessageElement("System", `New code snippet: ${data.message}`);
+
+        //TIMEOUT FOR TIME HANDLING HAHAHAHHAHAAHAHHAH
+        setTimeout(() => {
+            messageInput.disabled = false;
+            messageInput.focus();
+        }, 100); // tiny delay
     });
 
     socketio.on("game_ended", (data) => {
@@ -158,6 +169,28 @@
     socketio.on("message", (data) => {
         createMessageElement(data.name, data.message);
     });
+
+    //~~~ Leaderboard block ~~~//
+
+    // Handle leaderboard updates
+    socketio.on("update_in_game_leaderboard", (leaderboard) => {
+        const leaderboardList = document.getElementById("leaderboard-list");
+        leaderboardList.innerHTML = "";
+
+        if (!Array.isArray(leaderboard) || leaderboard.length === 0) {
+            const li = document.createElement("li");
+            li.textContent = "No scores available yet.";
+            leaderboardList.appendChild(li);
+            return;
+        }
+
+        leaderboard.forEach((entry, index) => {
+            const li = document.createElement("li");
+            li.textContent = `${index + 1}. ${entry.username}: ${entry.score}`;
+            leaderboardList.appendChild(li);
+        });
+    });
+
 
     //~~~ Message sending ~~~//
     function sendMessage() {
@@ -191,6 +224,8 @@
     } catch (e) {
         console.error("Error parsing initial messages:", e);
     }
+
+    socketio.emit("request_in_game_leaderboard");
 </script>
 
 {% endblock %}

@@ -16,3 +16,10 @@ class Code(db.Model):
     full_code = db.Column(db.Text, nullable=False)
     error_line_number = db.Column(db.Integer, nullable=False)
     correct_line = db.Column(db.String(255), nullable=False) #fixed size since one line of code won't be that long
+
+class GlobalLeaderboard(db.Model):
+    __tablename__ = "global_leaderboard"
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.String(64), unique=True, nullable=False)
+    username = db.Column(db.String(128), nullable=False)
+    score = db.Column(db.Integer, default=0)

@@ -62,5 +62,5 @@ if __name__ == "__main__":
         populate_codes_from_csv() 
 
     # For production, consider debug=False and more robust host/port settings
-    socketio.run(app, host='0.0.0.0', port=5000, debug=False) #run with this for testing non localhost
-    # socketio.run(app, debug=True)
+    # socketio.run(app, host='0.0.0.0', port=5000, debug=False) #run with this for testing non localhost
+    socketio.run(app, debug=True)

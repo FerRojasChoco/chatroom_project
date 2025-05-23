@@ -9,7 +9,9 @@
                     {{ form.password }}
                     {{ form.submit }}
                 </form>
-
+                {% if error %}
+                            <p style="color: red;">{{error}}</p>
+                {% endif %}
                 <a href="{{url_for('auth.register')}}" style="font-size: 0.7rem;">Don't have an account? Sign up!</a>
         </div>
     </div>
