@@ -1,8 +1,9 @@
 body {
-    background: #84c6ff url('/static/images/matrix.gif') center/cover fixed no-repeat;
+    background: #000000 url('/static/images/matrix.gif') center/cover fixed no-repeat;
     margin: 0;
     font-family: 'Courier New', Courier, monospace;
     color: white;
+    overflow: hidden;
   }
 
 
@@ -386,4 +387,13 @@ a:hover{color:inherit}
   white-space: normal;        /* allow wrapping */
   overflow-wrap: break-word;  /* break really long words/URLs */
   max-width: 100%;            /* never grow past the chat pane */
+}
+
+.dashboard{
+      grid-template-columns: 1fr 2fr 1fr;
+}
+
+.dashboard-leaderboard{
+    text-align: left;
+    height: 80%;
 }

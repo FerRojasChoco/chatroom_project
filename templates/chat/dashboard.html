@@ -1,54 +1,68 @@
 {% extends 'base.html' %}
-{% block content %} 
-<div id="centering_using_grid">
-    <div class="intro_1">
-        <h2>You are logged in, {{name}}</h1>
-        <input type="hidden" name="name" value="{{ name }}"/>
-        <h3>Enter the chat room:</h3>
-        <form method="post" class="columnwise">
-            <input
-                 type="text"
-                placeholder="Room code"
-                name="code"
-                value="{{code}}"
-                style="text-transform: uppercase;"
-                oninput="this.value = this.value.toUpperCase()"
-                class="big-input"/>
+{% block content %}
 
-            <div class="buttons_for_login_and_signup">
-                <button type="submit" class="button login wide-horiz" name="join">Join</button>
-                <button type="submit" class="button register wide-horiz" name="create">Create</button>
-                    
-            </div>
-        </form>
-            {% if error %}
-                        <p style="color: red;">Error: {{error}}</p>
-            {% endif %}
-         <a href="{{url_for('auth.logout')}}">Press here to logout</a>
+<div class="room-grid dashboard">
+    <aside class="intro_1 dashboard-leaderboard">
+        <!-- Added to display the leaderboard-->
+        <table border="1">
+            <caption style="margin-bottom: 0.4rem; font-weight: bold; font-size: 1.5em;">Global Leaderboard</caption>
+            <thead>
+                <tr>
+                    <th>Rank</th>
+                    <th>Username</th>
+                    <th>Score</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for user in leaderboard %}
+                <tr>
+                    <td>{{ loop.index }}</td> 
+                    <td>{{ user.username }}</td>
+                    <td>{{ user.score }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </aside>
+
+
+    <div id="centering_using_grid">
+        <div class="intro_1">
+            <h2>You are logged in, {{name}}</h1>
+            <input type="hidden" name="name" value="{{ name }}"/>
+            <h3>Enter the chat room:</h3>
+            <form method="post" class="columnwise">
+                <input
+                    type="text"
+                    placeholder="Room code"
+                    name="code"
+                    value="{{code}}"
+                    style="text-transform: uppercase;"
+                    oninput="this.value = this.value.toUpperCase()"
+                    class="big-input"/>
+
+                <div class="buttons_for_login_and_signup">
+                    <button type="submit" class="button login wide-horiz" name="join">Join</button>
+                    <button type="submit" class="button register wide-horiz" name="create">Create</button>
+                        
+                </div>
+            </form>
+                {% if error %}
+                            <p style="color: red;">Error: {{error}}</p>
+                {% endif %}
+            <a href="{{url_for('auth.logout')}}">Press here to logout</a>
+        </div>
     </div>
+
+     <aside class="intro_1 dashboard-leaderboard">
+        <!-- Added to display the leaderboard-->
+        <h3 style="margin-bottom: 0.4rem; margin-top: 1rem; font-weight: bold; font-size: 1.5em; text-align: center;">Friends</h3>
+        <ul class="room-chat" style="box-shadow: none;">
+            {% for user in leaderboard %}
+            <li>{{ user.username }}</li>
+            {% endfor %}
+        </ul>
+    </aside>
 </div>
-
-<!-- Added to display the leaderboard-->
-<table border="1">
-    <caption style="margin-bottom: 10px; font-weight: bold; font-size: 1.5em;">Global Leaderboard</caption>
-    <thead>
-        <tr>
-            <th>Rank</th>
-            <th>Username</th>
-            <th>Score</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for user in leaderboard %}
-        <tr>
-            <td>{{ loop.index }}</td> 
-            <td>{{ user.username }}</td>
-            <td>{{ user.score }}</td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
-
-
 
 {% endblock %}
