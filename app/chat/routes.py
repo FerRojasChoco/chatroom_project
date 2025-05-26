@@ -1,8 +1,10 @@
-from flask import render_template, request, session, redirect, url_for, current_app
+from flask import render_template, request, session, redirect, url_for, current_app, jsonify
 from flask_login import login_required, current_user
 from . import chat_bp
 from ..utils import generate_unique_code, rooms 
-from ..models import db, Code, GlobalLeaderboard
+from ..models import db, Code, GlobalLeaderboard, User, Friendship
+from sqlalchemy import or_
+from sqlalchemy.orm import joinedload
 
 #~~~ Dashboard (logged in) route block ~~~#
 @chat_bp.route("/dashboard", methods=['GET', 'POST'])
@@ -44,7 +46,12 @@ def dashboard():
 
     leaderboard = db.session.query(GlobalLeaderboard).order_by(GlobalLeaderboard.score.desc()).all()
 
-    return render_template('dashboard.html', name=current_user.username, leaderboard=leaderboard)
+    pending_requests = Friendship.query.options(joinedload(Friendship.sender)).filter(
+        Friendship.friend_id == current_user.id,
+        Friendship.status == 'pending'
+    ).all()
+
+    return render_template('dashboard.html', name=current_user.username, leaderboard=leaderboard, pending_requests=pending_requests)
 
 
 
@@ -76,3 +83,70 @@ def room():
         messages=rooms[room_id]["messages"],
         snippet=rooms[room_id]["current_code"].full_code
     )
+
+#~~~ Friend system block ~~~#
+@chat_bp.route("/add_friend/<username>", methods=['POST'])
+@login_required
+def add_friend(username):
+    if current_user.username == username:
+        return jsonify(error="You cannot add yourself"), 400
+
+    friend = User.query.filter_by(username=username).first_or_404()
+    
+    existing = Friendship.query.filter(or_(
+            (Friendship.user_id == current_user.id) & (Friendship.friend_id == friend.id),
+            (Friendship.user_id == friend.id) & (Friendship.friend_id == current_user.id)
+        )).first()
+
+    if existing:
+        if existing.status == 'pending':
+            return jsonify(error="Friend request already pending"), 400
+        if existing.status == 'accepted':
+            return jsonify(error="Already friends"), 400
+            
+    new_request = Friendship(
+        user_id=current_user.id,
+        friend_id=friend.id,
+        status='pending'
+    )
+    db.session.add(new_request)
+    db.session.commit()
+    
+    return jsonify(success=True, message=f"Request sent to {username}")
+
+@chat_bp.route("/respond_request/<int:request_id>/<action>", methods=['POST'])
+@login_required
+def respond_request(request_id, action):
+    req = Friendship.query.get_or_404(request_id)
+
+    if req.friend_id != current_user.id:
+        return jsonify(error="Unauthorized"), 403
+
+    try:
+        if action == 'accept':
+            req.status = 'accepted'
+            db.session.commit()
+            return jsonify(success=True, message="Friend request accepted")
+        else:
+            db.session.delete(req)
+            db.session.commit()
+            return jsonify(success=True, message="Request declined")
+    except Exception as e:
+        db.session.rollback()
+        return jsonify(error=str(e)), 500
+
+@chat_bp.route("/search_users")
+@login_required
+def search_users():
+    query = request.args.get('q', '').strip()
+    
+    users = User.query.filter(
+        User.username.ilike(f'%{query}%'),
+        User.id != current_user.id
+    ).limit(10).all()
+    
+    return jsonify([{
+        'id': u.id,
+        'username': u.username,
+        'score': u.score if u.score else 0
+    } for u in users])

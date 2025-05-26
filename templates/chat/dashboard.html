@@ -54,15 +54,92 @@
         </div>
     </div>
 
-     <aside class="intro_1 dashboard-leaderboard">
-        <!-- Added to display the leaderboard-->
+     <aside class="friends-section">
         <h3 style="margin-bottom: 0.4rem; margin-top: 1rem; font-weight: bold; font-size: 1.5em; text-align: center;">Friends</h3>
-        <ul class="room-chat" style="box-shadow: none;">
-            {% for user in leaderboard %}
-            <li>{{ user.username }}</li>
+
+        <div class="friend-search">
+            <input type="text" id="friend-search" placeholder="Search users...">
+            <button onclick="searchUsers()">Search</button>
+            <div id="search-results"></div>
+        </div>
+
+        <ul id="friend-list">
+            {% for friend in friends %}
+            <li>
+                <span>{{ friend.username }}</span>
+                <span>Score: {{ friend.score|default(0) }}</span>
+                <button onclick="inviteFriend('{{ friend.username }}')">Invite</button>
+            </li>
+            {% else %}
+                <li class="no-friends">No friends yet. Search users to add friends!</li>
             {% endfor %}
         </ul>
+
+        <div class="pending-requests">
+            <h3>Pending Requests</h3>
+            <ul id="pending-requests-list">
+                {% for req in pending_requests %}
+                <li data-request-li-id="{{ req.id }}">
+                    {{ req.sender.username }}  <!-- Now correctly shows requester's name -->
+                    <div>
+                        <button onclick="respondRequest('{{ req.id }}', 'accept')">✓</button>
+                        <button onclick="respondRequest('{{ req.id }}', 'decline')">✗</button>
+                    </div>
+                </li>
+                {% else %}
+                <li style="color: #666; padding: 0.5rem;">No pending requests</li>
+                {% endfor %}
+            </ul>
+        </div>
+
     </aside>
 </div>
+
+<script type="text/javascript">
+    //~~~ Search Users ~~~//
+    function searchUsers() {
+        const query = document.getElementById('friend-search').value;
+        fetch(`/chat/search_users?q=${encodeURIComponent(query)}`)
+            .then(response => response.json())
+            .then(users => {
+                const resultsDiv = document.getElementById('search-results');
+                resultsDiv.innerHTML = users.map(user => `
+                    <div class="search-result">
+                        ${user.username} (Score: ${user.score})
+                        <button onclick="sendFriendRequest('${user.username}')">
+                            Add Friend
+                        </button>
+                    </div>
+                `).join('');
+            });
+    }
+
+    //~~~ Send Friend Request ~~~//
+    function sendFriendRequest(username) {
+        fetch(`/chat/add_friend/${encodeURIComponent(username)}`, {
+            method: 'POST'
+        })
+        .then(response => response.json())
+        .then(data => {
+            if(data.error) alert(data.error);
+            else alert(data.message);
+        });
+    }
+
+    //~~~ Respond to Request ~~~//
+    function respondRequest(requestId, action) {
+        fetch(`/chat/respond_request/${requestId}/${action}`, {
+            method: 'POST'
+        })
+        .then(response => response.json())
+        .then(data => {
+            if(data.error) alert(data.error);
+            else {
+                document.querySelector(`li[data-request-id="${requestId}"]`).remove();
+                alert(data.message);
+            }
+        });
+    }
+</script>
 
 {% endblock %}
