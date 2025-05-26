@@ -51,7 +51,9 @@ def dashboard():
         Friendship.status == 'pending'
     ).all()
 
-    return render_template('dashboard.html', name=current_user.username, leaderboard=leaderboard, pending_requests=pending_requests)
+    friends = current_user.friends
+
+    return render_template('dashboard.html', name=current_user.username, friends=friends, leaderboard=leaderboard, pending_requests=pending_requests)
 
 
 
