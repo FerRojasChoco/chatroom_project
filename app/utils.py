@@ -2,6 +2,7 @@ import random
 from string import ascii_uppercase
 from flask_socketio import emit
 from .models import Code
+import re
 
 #~~~ Global in-memory store for rooms ~~~#
 rooms = {}
@@ -54,3 +55,24 @@ def end_game(room_id, message):
         "show_ready": True
     }, to=room_id)
 
+
+
+def normalize_cpp_line(line):
+    """Normalize C++ code for comparison"""
+    if not line:
+        return ""
+    
+    # Convert to lowercase (optional - remove if you want case sensitivity)
+    line = line.lower()
+    
+    # Remove all whitespace (including newlines)
+    line = re.sub(r'\s+', '', line)
+    
+    # Normalize common C++ equivalents
+    line = line.replace("!=", "<>")  # Alternative inequality representation
+    line = line.replace("==", "=")   # Treat single = and == as same (if appropriate)
+    
+    # Remove trailing semicolons (optional)
+    line = line.rstrip(';')
+    
+    return line

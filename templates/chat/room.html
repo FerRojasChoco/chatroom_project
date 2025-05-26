@@ -11,7 +11,6 @@
         <h3>In-Game Leaderboard</h3>
         <ul id="leaderboard-list"></ul>
     </div>
-    <!-- CHECK IF CAN DELETE THE SECOND UL MY N WORD -->
     <ul>
       {% for p in players %}
         <li>{{ p.name }} — {{ p.score }}</li>
@@ -29,6 +28,11 @@
 
     <pre id="code-snippet"></pre>
     <div id="game-progress" style="display: none;"></div>    
+
+    <div id="loading-screen" style="display: none;">
+    <div class="loading-spinner"></div>
+    <p>Loading next challenge...</p>
+</div>
 
 
   </section>
@@ -64,6 +68,7 @@
     const codeSnippetElement = document.getElementById("code-snippet");
 
     let isReady = false;
+    let totalUsers = 1;
 
     //~~~ Function to create and append message element ~~~//
     const createMessageElement = (name, msgText) => {
@@ -130,23 +135,29 @@
         createMessageElement("System", data.message);
     });
 
-    socketio.on("new_snippet", (data) => {
-        document.getElementById("code-snippet").textContent = data.snippet;
-        document.getElementById("game-progress").textContent = data.message;
+socketio.on("new_snippet", (data) => {
+    const snippetElement = document.getElementById("code-snippet");
+    snippetElement.textContent = "Loading snippet, get ready...";
+    snippetElement.classList.add("loading-state"); 
+    
+    
+    document.getElementById("game-progress").textContent = data.message;
+    
+    setTimeout(() => {
+        snippetElement.textContent = data.snippet;
+        snippetElement.classList.remove("loading-state");
         createMessageElement("System", `New code snippet: ${data.message}`);
-
-        //TIMEOUT FOR TIME HANDLING HAHAHAHHAHAAHAHHAH
-        setTimeout(() => {
-            messageInput.disabled = false;
-            messageInput.focus();
-        }, 100); // tiny delay
-    });
+  
+    }, 3000); // 3 second delay
+});
 
     socketio.on("game_ended", (data) => {
         document.getElementById("code-snippet").style.display = "none";
         document.getElementById("game-progress").style.display = "none";
 
         document.getElementById("ready-section").style.display = "block";
+
+        document.getElementById("ready-status").textContent = `0/${totalUsers} players ready`;
 
         const readyBtn = document.getElementById("ready-btn");
         readyBtn.textContent = "I'm Ready";
@@ -158,6 +169,7 @@
     });
 
     socketio.on("member_count_update", (data) => {
+        totalUsers = data.count;
         const count = data.count;
         const readyCount = data.ready_count || 0;
         document.getElementById("member-count").textContent = 

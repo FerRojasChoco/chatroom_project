@@ -387,3 +387,20 @@ a:hover{color:inherit}
   overflow-wrap: break-word;  /* break really long words/URLs */
   max-width: 100%;            /* never grow past the chat pane */
 }
+
+/* spinner for laoding */
+.loading-spinner {
+    border: 5px solid #f3f3f3;
+    border-top: 5px solid #3498db;
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    margin: 0 auto;
+}
+
+
+.loading-state {
+    color: #888;
+    font-style: italic;
+    min-height: 100px;
+}

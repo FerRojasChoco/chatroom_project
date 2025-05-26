@@ -1,7 +1,7 @@
 from flask import session, current_app
 from flask_socketio import join_room, leave_room, send, emit
 from . import socketio 
-from .utils import rooms, start_game, load_new_snippet, end_game
+from .utils import rooms, start_game, load_new_snippet, end_game, normalize_cpp_line
 from .models import db, User, Code
 from .InGameLeaderboardMongo import log_game_result, update_global_leaderboard, generate_leaderboard
 from datetime import datetime
@@ -30,47 +30,48 @@ def message(data):
     rooms[room_id]["messages"].append(content) #TODO correct the message time
 
     #~~~ Handles user submitting corrected line of code ~~~#
-    if current_code_obj and user_message.strip() == current_code_obj.correct_line.strip():
-        
-        rooms[room_id]["snippets_completed"] += 1
-        rooms[room_id]["used_snippets"].add(current_code_obj.id) #adds the correct answered snippet to the already used snippets
+    if current_code_obj:
+        normalized_user_input = normalize_cpp_line(user_message.strip())
+        normalized_correct = normalize_cpp_line(current_code_obj.correct_line.strip())
+        if normalized_user_input == normalized_correct:
+              
+            rooms[room_id]["snippets_completed"] += 1
+            rooms[room_id]["used_snippets"].add(current_code_obj.id) #adds the correct answered snippet to the already used snippets
 
-        victory_content = {
-            "name": "System",
-            "message": f": Correct! {name} found the answer. ({rooms[room_id]['snippets_completed']}/{rooms[room_id]['max_snippets']} completed)"
-        }
+            victory_content = {
+                "name": "System",
+                "message": f": Correct! {name} found the answer. ({rooms[room_id]['snippets_completed']}/{rooms[room_id]['max_snippets']} completed)"
+            }
 
-        send(victory_content, to=room_id)
-        rooms[room_id]["messages"].append(victory_content)
+            send(victory_content, to=room_id)
+            rooms[room_id]["messages"].append(victory_content)
 
-        #~~~ Leaderboard time related sub block ~~~#
-        user = User.query.filter_by(username=name).first()
-        start_time = rooms[room_id].get("start_time")
+            #~~~ Leaderboard time related sub block ~~~#
+            user = User.query.filter_by(username=name).first()
+            start_time = rooms[room_id].get("start_time")
 
-        if not start_time:
-            start_time = datetime.utcnow()
-            rooms[room_id]["start_time"] = start_time
+            if not start_time:
+                start_time = datetime.utcnow()
+                rooms[room_id]["start_time"] = start_time
 
-        duration_seconds = (datetime.utcnow() - start_time).total_seconds()
+            duration_seconds = (datetime.utcnow() - start_time).total_seconds()
 
-        user_id = user.id 
-        username = name
-        submitted_line = user_message.strip()
-        code_id = current_code_obj.id
-        score = 100  # Later make it more complex
-        is_correct = True
-        room_name = room_id
+            user_id = user.id 
+            username = name
+            submitted_line = user_message.strip()
+            code_id = current_code_obj.id
+            score = 100  # Later make it more complex
+            is_correct = True
+            room_name = room_id
 
-        print("HOLA SOY ANTES DE LOG GAME")
-        log_game_result(user_id, username, code_id, submitted_line, score, is_correct, duration_seconds, room_name)
-        socketio.emit("update_in_game_leaderboard", generate_leaderboard(room_id), to=room_id)
-        
-        print("HOLA SOY DESPUES DE LOG GAME")
+            log_game_result(user_id, username, code_id, submitted_line, score, is_correct, duration_seconds, room_name)
+            socketio.emit("update_in_game_leaderboard", generate_leaderboard(room_id), to=room_id)
+            
 
-        if rooms[room_id]["snippets_completed"] >= rooms[room_id]["max_snippets"]:
-            end_game(room_id, "Game completed! All snippets solved.")
-        else:
-            load_new_snippet(room_id)
+            if rooms[room_id]["snippets_completed"] >= rooms[room_id]["max_snippets"]:
+                end_game(room_id, "Game completed! All snippets solved.")
+            else:
+                load_new_snippet(room_id)
 
 
 #~~~ Confirmation of snippet displayed ~~~#
