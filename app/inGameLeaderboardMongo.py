@@ -25,7 +25,6 @@ def log_game_result(user_id, username, code_id, submitted_line, score, is_correc
 
 def generate_leaderboard(room_id):
     pipeline = [
-        #{"$match": {"room_name": room_id}},
         {"$match": {"room": room_id}},
         {"$group": {"_id": "$username", "score": {"$sum": "$score"}}},
         {"$sort": {"score": -1}},
