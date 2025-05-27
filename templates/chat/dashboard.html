@@ -5,10 +5,10 @@
     <aside class="intro_1 dashboard-leaderboard">
         <!-- Added to display the leaderboard-->
         <table border="1">
-            <caption style="margin-bottom: 0.4rem; font-weight: bold; font-size: 1.5em;">Global Leaderboard</caption>
+            <caption>Global Leaderboard</caption>
             <thead>
                 <tr>
-                    <th>Rank</th>
+                    <th>Rank</th>   
                     <th>Username</th>
                     <th>Score</th>
                 </tr>
@@ -28,7 +28,7 @@
 
     <div id="centering_using_grid">
         <div class="intro_1">
-            <h2>You are logged in, {{name}}</h1>
+            <h2>You are logged in, <span>{{name}}</span></h2>
             <input type="hidden" name="name" value="{{ name }}"/>
             <h3>Enter the chat room:</h3>
             <form method="post" class="columnwise">
@@ -55,13 +55,14 @@
     </div>
 
      <aside class="friends-section">
-        <h3 style="margin-bottom: 0.4rem; margin-top: 1rem; font-weight: bold; font-size: 1.5em; text-align: center;">Friends</h3>
+        <h3>Friends</h3>
 
         <div class="friend-search">
-            <input type="text" id="friend-search" placeholder="Search users...">
+            <input type="text" id="friend-search" placeholder="Search users..." onkeyup="if (event.keyCode === 13) searchUsers()">
             <button onclick="searchUsers()">Search</button>
-            <div id="search-results"></div>
         </div>
+        <div id="search-results"></div>
+
 
         <ul id="friend-list">
             {% for friend in friends %}
