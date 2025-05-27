@@ -122,8 +122,19 @@
         })
         .then(response => response.json())
         .then(data => {
-            if(data.error) alert(data.error);
-            else alert(data.message);
+            const resultDivs = document.querySelectorAll('.search-result');
+
+            resultDivs.forEach(div => {
+                if (div.textContent.includes(username)) {
+                    if (data.error) {
+                        div.innerHTML += `<div class="inline-error">${data.error}</div>`;
+                    } else {
+                        div.querySelector('button').disabled = true;
+                        div.querySelector('button').textContent = "Request Sent";
+                        div.classList.add("request-sent");
+                    }
+                }
+            });
         });
     }
 
