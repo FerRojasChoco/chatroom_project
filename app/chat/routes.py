@@ -128,7 +128,18 @@ def respond_request(request_id, action):
         if action == 'accept':
             req.status = 'accepted'
             db.session.commit()
-            return jsonify(success=True, message="Friend request accepted")
+
+            friend = User.query.get(req.user_id)
+
+
+            return jsonify({
+                "success": True,
+                "message": "Friend request accepted",
+                "new_friend": {
+                    "username": friend.username,
+                    "score": friend.score or 0
+                }
+            })
         else:
             db.session.delete(req)
             db.session.commit()

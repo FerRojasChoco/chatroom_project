@@ -145,9 +145,28 @@
         })
         .then(response => response.json())
         .then(data => {
-            if(data.error) alert(data.error);
-            else {
-                document.querySelector(`li[data-request-id="${requestId}"]`).remove();
+            if(data.error) {
+                alert(data.error);
+            } else {
+                const li = document.querySelector(`li[data-request-li-id="${requestId}"]`);
+                if (li) li.remove();
+
+                if (action === 'accept' && data.new_friend) {
+                    const friendList = document.getElementById('friend-list');
+                    const newFriend = document.createElement('li');
+                    newFriend.innerHTML = `
+                        <span>${data.new_friend.username}</span>
+                        <span>Score: ${data.new_friend.score || 0}</span>
+                        <button onclick="inviteFriend('${data.new_friend.username}')">Invite</button>
+                    `;
+
+                    // Remove "No friends yet" placeholder if present
+                    const placeholder = friendList.querySelector('.no-friends');
+                    if (placeholder) placeholder.remove();
+
+                    friendList.appendChild(newFriend);
+                }
+
                 alert(data.message);
             }
         });

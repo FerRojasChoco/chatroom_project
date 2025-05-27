@@ -34,8 +34,21 @@ h2 {
   text-align: center;
   color: var(--accent-green);
 }
-
-
+h3{
+  text-align: center;
+  margin-bottom: 1.5rem;
+  margin-top: 1rem;
+  font-weight: 600;
+  font-size: 1.5rem;
+  color: var(--accent-green);
+  font-family: 'Fira Code', monospace;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  text-shadow: 0 0 5px rgba(0, 255, 156, 0.5);
+  position: relative;
+  display: inline-block;
+  width: 100%;
+}
 .content {
   display: flex;
   align-items: center;
@@ -602,10 +615,13 @@ h2 {
 
 /* Friends section styling preserved */
 .friends-section {
-  background-color: #1a1a1a;
+  display: flex;
+  flex-direction: column;
+  height: 100%; /* Take full height of parent */
+  overflow: hidden; /* Contain all child elements */
+  background-color: rgba(26, 26, 26, 0.9);
+  border-radius: 10px;
   padding: 1.5rem;
-  border-radius: 8px;
-  margin-top: 1.5rem;
 }
 
 .friend-search {
@@ -668,6 +684,65 @@ h2 {
   background: var(--accent-blue);
   transform: translateY(-2px);
   box-shadow: var(--glow-light);
+}
+
+#friend-list {
+  flex: 1; /* Take available space */
+  overflow-y: auto; /* Enable scrolling */
+  min-height: 0; /* Allow proper flex shrinking */
+  max-height: 40vh; /* Maximum height before scrolling */
+  margin: 1rem 0;
+  padding: 0;
+  scrollbar-width: thin;
+  scrollbar-color: var(--accent-green) var(--bg-dark);
+}
+
+/* Pending requests scrolling container */
+.pending-requests {
+  flex-shrink: 0; /* Don't shrink */
+  overflow-y: auto;
+  max-height: 30vh; /* Limit height with scroll */
+  margin-top: 1rem;
+}
+
+/* Custom scrollbars (matches chat style) */
+#friend-list::-webkit-scrollbar,
+.pending-requests::-webkit-scrollbar {
+  width: 8px;
+}
+
+#friend-list::-webkit-scrollbar-track,
+.pending-requests::-webkit-scrollbar-track {
+  background: var(--bg-dark);
+}
+
+#friend-list::-webkit-scrollbar-thumb,
+.pending-requests::-webkit-scrollbar-thumb {
+  background-color: var(--accent-green);
+  border-radius: 4px;
+}
+
+/* List item styling */
+#friend-list li, 
+#pending-requests-list li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  margin: 0.25rem 0;
+  background-color: rgba(17, 17, 17, 0.7);
+  border-radius: 5px;
+  border-left: 2px solid var(--accent-green);
+}
+
+/* Search results styling */
+#search-results {
+  max-height: 200px;
+  overflow-y: auto;
+  margin-top: 0.5rem;
+  background-color: rgba(17, 17, 17, 0.7);
+  border-radius: 5px;
+  border: 1px solid var(--border);
 }
 
 #friend-list button {
