@@ -55,6 +55,15 @@ h3{
   justify-content: center;
 }
 
+#centering_using_grid {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh; /* Full viewport height */
+  width: 100%;
+  padding: 2rem;
+}
+
 /* Panels and Boxes */
 .message-box {
   background-color: var(--bg-panel);
