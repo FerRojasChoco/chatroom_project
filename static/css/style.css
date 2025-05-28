@@ -147,7 +147,13 @@ h3{
   overflow: auto;
   white-space: pre-wrap;
   border-radius: 4px;
+  user-select: none;
+  -webkit-user-select: none; /* Safari */
+  -moz-user-select: none; /* Firefox */
+  -ms-user-select: none; /* IE10+/Edge */
+  cursor: default;
 }
+
 
 /* Ready Section */
 #ready-section {

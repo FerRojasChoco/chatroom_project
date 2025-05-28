@@ -64,6 +64,25 @@
     const sendButton = document.getElementById("send-button");
     const memberCountElement = document.getElementById("member-count");
     const codeSnippetElement = document.getElementById("code-snippet");
+    
+    //~~~ Anti-cheat handling block ~~~//
+    document.addEventListener('contextmenu', function(e) {
+        e.preventDefault();
+        createMessageElement("System", " Why would you right click?");
+    });
+    document.addEventListener('keydown', function(e) {
+        // Disable Ctrl+C, Ctrl+X, Ctrl+A
+        if (e.ctrlKey && (e.keyCode === 67 || e.keyCode === 88 || e.keyCode === 65)) {
+            e.preventDefault();
+            createMessageElement("System", " I don't like shortcuts keys...");
+        }
+        
+        // Disable F12 (DevTools) and Ctrl+Shift+I
+        if (e.keyCode === 123 || (e.ctrlKey && e.shiftKey && e.keyCode === 73)) {
+            e.preventDefault();
+            createMessageElement("System", " Tried with dev tools? Zamn.");
+        }
+    });
 
     let isReady = false;
     let totalUsers = 1;
