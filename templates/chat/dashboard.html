@@ -68,7 +68,6 @@
             {% for friend in friends %}
             <li>
                 <span>{{ friend.username }}</span>
-                <span>Score: {{ friend.score|default(0) }}</span>
                 <button onclick="inviteFriend('{{ friend.username }}')">Invite</button>
             </li>
             {% else %}

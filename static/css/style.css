@@ -338,6 +338,9 @@ h3{
     border-radius: 8px;
     overflow: hidden;
     font-size: 0.95rem;
+    display: block; 
+    max-height: 70vh; 
+    overflow-y: auto; 
 }
 
 .dashboard-leaderboard th,
@@ -602,15 +605,6 @@ h3{
   flex-direction: column;
 }
 
-/* Original leaderboard styles enhanced */
-.dashboard-leaderboard table {
-  width: 100%;
-  border-collapse: collapse;
-  background-color: #1a1a1a;
-  margin-bottom: 1.5rem;
-  border-radius: 8px;
-  overflow: hidden;
-}
 
 .dashboard-leaderboard th {
   background-color: #111;
