@@ -59,7 +59,7 @@ h3{
   display: flex;
   justify-content: center;
   align-items: center;
-  min-height: 100vh; /* Full viewport height */
+  min-height: 100vh;
   width: 100%;
   padding: 2rem;
 }
@@ -632,8 +632,8 @@ h3{
 .friends-section {
   display: flex;
   flex-direction: column;
-  height: 100%; /* Take full height of parent */
-  overflow: hidden; /* Contain all child elements */
+  height: 100%; 
+  overflow: hidden; 
   background-color: rgba(26, 26, 26, 0.9);
   border-radius: 10px;
   padding: 1.5rem;
@@ -702,10 +702,10 @@ h3{
 }
 
 #friend-list {
-  flex: 1; /* Take available space */
-  overflow-y: auto; /* Enable scrolling */
-  min-height: 0; /* Allow proper flex shrinking */
-  max-height: 40vh; /* Maximum height before scrolling */
+  flex: 1; 
+  overflow-y: auto; 
+  min-height: 0; 
+  max-height: 40vh; 
   margin: 1rem 0;
   padding: 0;
   scrollbar-width: thin;
@@ -714,9 +714,9 @@ h3{
 
 /* Pending requests scrolling container */
 .pending-requests {
-  flex-shrink: 0; /* Don't shrink */
+  flex-shrink: 0; 
   overflow-y: auto;
-  max-height: 30vh; /* Limit height with scroll */
+  max-height: 30vh; 
   margin-top: 1rem;
 }
 
@@ -777,7 +777,7 @@ h3{
   transform: translateY(-2px);
   box-shadow: var(--glow-light);
 }
-/* Pending requests styling preserved */
+/* Pending requests styling  */
 .pending-requests {
   margin-top: 2rem;
 }
@@ -857,7 +857,7 @@ h3{
   color: white;
 }
 
-/* Responsive design preserved */
+/* Responsive design */
 @media (max-width: 1024px) {
   .room-grid {
     grid-template-columns: 1fr;
