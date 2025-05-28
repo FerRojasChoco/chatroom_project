@@ -108,7 +108,6 @@ def connect(auth):
             rooms[room_id]["current_code"] = first_code
             
 
-            # Delay the emit by 0.5 seconds to give client time to fully join
             def delayed_emit():
                 time.sleep(0.5)
                 socketio.emit("new_snippet", {

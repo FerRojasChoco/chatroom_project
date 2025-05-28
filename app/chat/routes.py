@@ -15,14 +15,14 @@ def dashboard():
         join = request.form.get("join", False)
         create = request.form.get("create", False)
 
-        room_id = code #renamed bc it was confusing in this function's context
+        room_id = code #renamed bc it was confusing in this function's context, my brain is not braining at this point...
 
         if join != False and not code: 
             return render_template("dashboard.html", error="Please enter a room code.", name=current_user.username)
         
         
 
-        if create != False: 
+        if create != False:     # mi kp que no puso if create nomas XD
             room_id = generate_unique_code(4)
 
             rooms[room_id] = {
