@@ -1,3 +1,5 @@
+"""Sockets handlers for real time events."""
+
 from flask import session, current_app
 from flask_socketio import join_room, leave_room, send, emit
 from . import socketio 
@@ -12,6 +14,30 @@ import time
 #~~~ Function for handling messages ~~~#
 @socketio.on("message")
 def message(data):
+
+    """_summary_
+    Handle incoming chat messagesand code submissions.
+
+    Processes text messages in a room, validates code submissions against the current snippet,
+    updates game state (if correct), and manages leaderboard updates.
+
+    Parameters
+    ----------
+    data : dict
+        Message data from client containing:
+        - 'data' : str
+            The message text sent by the user
+
+    Notes
+    -----
+    - Validates room existence and user session
+    - Normalizes and compares user input against current snippet's correct line
+    - Updates game progress and leaderboard on correct submission
+    - Triggers game end when max snippets are completed
+    - Broadcasts system messages and leaderboard updates
+    - Logs warnings for invalid room accesses
+    """
+
     room_id = session.get("room")
     name = session.get("name")
 
@@ -77,6 +103,15 @@ def message(data):
 #~~~ Confirmation of snippet displayed ~~~#
 @socketio.on("snippet_displayed")
 def snippet_displayed():
+    """_summary_
+    Confirm snippet display and set game start time.
+
+    Notes
+    -----
+    - Triggered when clients confirm snippet rendering
+    - Sets the room's start time for game timing
+    - Logs room confirmation events
+    """
     room_id = session.get("room")
     print(f"[SERVER] Received snippet_displayed for room {room_id}")
     if room_id in rooms:
@@ -87,6 +122,22 @@ def snippet_displayed():
 #~~~ Function for handling user connections to a chatroom ~~~#
 @socketio.on("connect")
 def connect(auth):
+    """_summary_
+    Handle new socket connections to game rooms.
+
+    Parameters
+    ----------
+    auth : Any
+        Authentication data (unused in current implementation)
+
+    Notes
+    -----
+    - Initializes room structure on first connection
+    - Loads random code snippet for new rooms
+    - Broadcasts member count updates and join notifications
+    - Starts snippet transmission after short delay
+    - Logs connection attempts and room initialization
+    """
     room_id = session.get("room")
     name = session.get("name")
 
@@ -131,6 +182,14 @@ def connect(auth):
 
 @socketio.on("request_in_game_leaderboard")
 def send_in_game_leaderboard():
+    """_summary_
+    Broadcast current in-game leaderboard to room.
+
+    Notes
+    -----
+    - Fetches and emits leaderboard data for the current room
+    - Silently exits if room ID is invalid
+    """
     room_id = session.get("room")
     if not room_id:
         return
@@ -141,6 +200,16 @@ def send_in_game_leaderboard():
 #~~~ Function for handling user disconnection from a chatroom ~~~#
 @socketio.on("disconnect")
 def disconnect():
+    """_summary_
+    Handle client disconnections and clean up room state.
+
+    Notes
+    -----
+    - Updates member counts and ready status
+    - Deletes empty rooms and updates global leaderboard
+    - Broadcasts leave notifications and member updates
+    - Logs disconnections and room deletion events
+    """
     room_id = session.get("room")
     name = session.get("name")
 
@@ -173,6 +242,16 @@ def disconnect():
 
 @socketio.on("ready")
 def handle_ready():
+    """_summary_
+    Process player ready status and start game when all are ready.
+
+    Notes
+    -----
+    - Tracks ready users in the room
+    - Broadcasts ready status updates
+    - Triggers game start when all players are ready
+    """
+
     room_id = session.get("room")
     name = session.get("name")
 
