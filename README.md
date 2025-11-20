@@ -88,10 +88,33 @@ from app.main import create_app
 app = create_app()
 ```
 
+## 💾 Database Setup
+
+This project uses a **MariaDB** or **MySQL** database. Follow these steps to set up the required database and user before running the application.
+
+#### Prerequisites
+Ensure you have a running **MariaDB** or **MySQL** server accessible on `localhost`.
+
+#### 1. Configure Environment Variables (`.env` file)
+Create a file named **`.env`** in the project's root directory. This file holds your sensitive configuration values for the application. **You must add `.env` to your `.gitignore` file.**
+
+The values for `DB_USER` and `DB_PASSWORD` **must** match the credentials you create in the next step.
+
+```bash
+# .env file content
+SECRET_KEY="holaXD"
+DB_HOST="localhost"
+DB_USER="chatroom_user"
+DB_PASSWORD="choco"
+
+
+## Run this command from your project's root directory:
+sudo mariadb -u root -p < db_setup.sql
+
 ## ⚙️ Configuration
 Edit `app/main/config.py`:
 ```python
-SECRET_KEY = 'your-secret-key'
+SECRET_KEY = 'holaXD'
 DATABASE_URI = 'mongodb://localhost:27017/'
 ```
 
