@@ -1,0 +1,11 @@
+mysql
+flask
+flask_socketio
+flask_bcrypt
+flask_login
+flask_limiter
+flask_sqlalchemy
+flask_wtf
+pymysql
+pymongo
+dotenv
