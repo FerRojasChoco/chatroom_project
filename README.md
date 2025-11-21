@@ -92,6 +92,8 @@ app = create_app()
 
 This project uses a **MariaDB** or **MySQL** database. Follow these steps to set up the required database and user before running the application.
 
+This project also uses **MongoDB** and it should be installed beforehand.
+
 #### Prerequisites
 Ensure you have a running **MariaDB** or **MySQL** server accessible on `localhost`.
 
